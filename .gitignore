@@ -35,3 +35,6 @@ po/*~
 rsconnect/
 .DS_Store
 Guide_biodiv_QC.Rproj
+img/photos/*.jpeg
+img/photos/*.jpg
+img/photos/*.png
