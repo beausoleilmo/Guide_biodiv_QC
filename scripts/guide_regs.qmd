@@ -162,17 +162,17 @@ write.csv2(
 }
 
 # Assume que la jointure se fait avec les 
-count_sp_link = count_sp_information |>
-  mutate(fichier_photo = basename(fichier_photo)) |> 
-  left_join(
-    y = dat_all |> mutate(link = basename(link)), 
-    by = join_by(fichier_photo == link)
-  ) |> 
-    mutate(
-      fichier_photo = path.expand(file.path(
-           "..",
-          outlink
-        )))
+count_sp_link = count_sp_information #|>
+  # mutate(fichier_photo = basename(fichier_photo)) |> 
+  # left_join(
+  #   y = dat_all |> mutate(link = basename(link)), 
+  #   by = join_by(fichier_photo == link)
+  # ) |> 
+  #   mutate(
+  #     fichier_photo = path.expand(file.path(
+  #          "..",
+  #         outlink
+  #       )))
 
 # Lire les régions 
 regqc = st_read(
@@ -299,6 +299,66 @@ font-size: 12px;
 }
 </style>
 
+```{r generate_image_dictionary, results='asis', echo=FALSE}
+# 1. Get unique species with valid images
+unique_species <- sp_list_fil_all_taxo |> 
+  distinct(id, fichier_photo) |> 
+  filter(!is.na(fichier_photo) & fichier_photo != "")
+
+cat('<style>\n:root {\n')
+
+for (i in 1:nrow(unique_species)) {
+  row <- unique_species[i, ]
+  
+  # Get your base64 string here (assuming you read the file and encode it)
+  # Let's say it looks like: "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+  base64_string <- base64enc::base64encode(row$fichier_photo)
+
+  # Write it as a global CSS variable
+  cat(sprintf('  --img-sp-%s: url("data:image/jpeg;base64,%s");\n', row$id, base64_string))
+
+}
+
+
+# cat('/* Container Box Settings */
+# .taxa-img { 
+#   width: 100%; 
+#   height: 110px;       
+#   min-width: 110px;   
+#   min-height: 110px;   
+#   max-height: 110px;   
+#   display: block;
+#   cursor: pointer; 
+  
+#   /* THIS HANDLES LOCKING, CENTERING, AND CROPPING PERFECTLY */
+#   background-size: cover;
+#   background-position: center;
+#   background-repeat: no-repeat;
+# }
+
+# /* Mobile Adjustments */
+# @media (max-width: 600px) {
+#   .taxa-grid { 
+#     grid-template-columns: repeat(2, 1fr); 
+#     gap: 8px; 
+#   }
+#   .taxa-img {
+#     height: 95px;       
+#     min-height: 95px;
+#     max-height: 95px;
+#   }
+#   .taxa-title {
+#     font-size: 0.75em; 
+#   }
+# }
+# '
+# )
+
+cat('}\n</style>\n')
+```
+
+
+
 
 ```{r run_script, results='asis', echo=FALSE}
 # CSS snippet
@@ -308,7 +368,7 @@ cat('
 <style>
   .taxa-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .taxa-card { text-align: center; margin-bottom: 0px; border: 1px solid #eee; padding: 0px; border-radius: 8px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-  .taxa-img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; cursor: pointer; }
+  .taxa-img { width: 100%; height: 100px; min-width: 110px; min-height: 110px; object-fit: cover; border-radius: 6px; cursor: pointer; background-size: cover; background-position: center; background-repeat: no-repeat;}
   .taxa-info { margin-top: 2px; line-height: 1.0; }
   .taxa-title { font-size: 0.8em; color: #2c3e50; }
   .taxa-obs { font-size: 0.80em; display: block; margin-top: 4px; font-weight: bold; color: #2980b9; }
@@ -344,7 +404,8 @@ for (current_class in target_classes) {
       cat("\n###", reg_title, "\n\n")
       
       # Clean grid opening using the CSS class
-      cat(sprintf('<div class="taxa-grid" style="grid-template-columns: repeat(%s, 1fr);">\n', params$num_cols))
+      # cat(sprintf('<div class="taxa-grid" style="grid-template-columns: repeat(%s, 1fr);">\n', params$num_cols))
+      cat('<div class="taxa-grid" style="grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));">\n')
       
       # Vectorized components generation (Much faster than row-by-row string parsing where possible)
       for (i in 1:nrow(region_data)) {
@@ -359,17 +420,8 @@ for (current_class in target_classes) {
         
         # Gabarit HTML
         # NE PAS METTRE D'ESPACE AU DÉBUT DU TEXTE HTML 
-        cat(sprintf(
-     '<div class="taxa-card">
-<a href="%s" target="_blank"><img src="%s" class="taxa-img"></a>
-<p class="taxa-info">
-<strong class="taxa-title">%s</strong><br>
-<span class="taxa-obs">%s Obs.</span>
-</p>
-</div>',
-          img_url, img_src, row$nom_commun_qc, format(row$n, big.mark=" ")
-        )
-        )
+        cat(sprintf('<div class="taxa-card"><a href="%s" target="_blank"><div class="taxa-img" style="background-image: var(--img-sp-%s);"></div></a><div class="taxa-info"><span class="taxa-title">%s</span><span class="taxa-obs">%s Obs.</span></div></div>', 
+        img_url, row$id, row$nom_commun_qc, format(row$n, big.mark=" ")))
       }
       # Clore la grille 
       cat('\n</div>\n\n') 
