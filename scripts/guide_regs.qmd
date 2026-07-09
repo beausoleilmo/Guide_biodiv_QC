@@ -1,0 +1,438 @@
+---
+params:
+  num_cols: 3
+bibliography: ../ref/bibib.bib
+title: "Guide de la Biodiversité par Région"
+output: 
+  html_document:
+    self_contained: true
+    toc: true
+    toc_float: true
+    toc_extend: false
+editor_options: 
+  chunk_output_type: console
+---
+
+Le guide de la biodiversité du Québec est développé avec les données GBIF -@gbif_general et iNaturalist -@inaturalist_general (photos et autres informations comme site web, etc.). Ce projet a été créé dans le cadre de tutoriels de cartographie et de pédagogie autour de la biodiversité (voir article de blogue [Évologie](https://evologie.netlify.app/posts/guide_biodiv_qc/2025_05_24_guide_biodiv_qc/guide_biodiv_qc_1)).
+
+Pour en savoir plus sur les espèces présentes, cliquez sur les photos pour être redirigé vers les pages des espèces sur iNaturalist. 
+
+<!-- Retirer l'espace blanc  -->
+
+```{=html}
+<style>
+.tocify-extend-page {
+display: none !important;
+}
+</style>
+```
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(knitr)
+library(ggplot2)
+library(sf)
+```
+
+```{r data_in, echo=FALSE, message=FALSE, warning=FALSE}
+# Noms combinés pour renommer ces classes
+act = "Amphibiens - couleuvres - tortues"
+
+base_path = "../../evologie/InCubateur/2025_05_24_Guide_biodiv_qc/output/partie_2"
+
+# Données de noms d'espèces en français 
+sp_nm_fr_mod = read.csv(
+  file = file.path(base_path, 
+                   "sp_nm_df_MOD.csv")) |> 
+  dplyr::select(species, nom_commun_qc) |> 
+  dplyr::distinct()
+
+select_sp_tout_reg = read.csv2(file = file.path(
+  base_path,
+  "select_sp_tout_reg.csv"
+)) 
+
+if(file.exists("../data/path_imgs.csv")) {
+
+  dat_all = read.csv2(file = "../data/path_imgs.csv")
+
+}
+
+sp_list_fil_all <- read.csv2(
+  file = file.path(base_path,
+                   "sp_list_fil_all.csv")) |> 
+  dplyr::select(-c(kingdom:family, nom_commun_qc)) |> 
+  # Enlever duplciats 
+  dplyr::distinct(species, fr_nm, .keep_all = TRUE) |> 
+  # Duplicat (Océanite cul blanc)
+  filter(default_photo_medium_url != "https://www.inaturalist.org/taxa/1289621") |> 
+  # Ajouter les noms français 
+  left_join(
+    y = sp_nm_fr_mod ,
+    by = join_by(species),
+    relationship = "many-to-many"
+  )
+```
+
+```{r diagnostic_stop, echo=FALSE, message=FALSE, warning=FALSE}
+# stop("CURRENT WORKING DIRECTORY IS: ", getwd())
+```
+
+```{r prep_data, echo=FALSE, message=FALSE, warning=FALSE}
+count_sp_information = select_sp_tout_reg |> 
+  left_join(
+    y = sp_list_fil_all,
+    by = join_by(species),
+    relationship ="many-to-many"
+  ) |> 
+  # Remplacer des noms pour l'affichage 
+  mutate(
+    reformat_taxo = case_when(
+      class == "Amphibia" ~ act,
+      class == "Squamata" ~ act,
+      class == "Testudines" ~ act,
+      class == "Mammalia" ~ "Mammifères",
+      kingdom == "Fungi" ~ "Champignons",
+      kingdom == "Plantae" ~ "Plantes",
+      Type_FR == "Poissons" ~ "Poissons",
+      phylum == "Arthropoda" ~ "Bobittes",
+      class == "Aves" ~ "Oiseaux",
+      .default = class
+    ),
+    # l'Orignal avait 2 noms différents, mais pas nécessaire 
+    # d'être aussi précis dans le guide. Combiner les 2 photos
+    # qui sont les mêmes de toute manière 
+    fichier_photo = gsub(
+      pattern = "Alces.americanus.jpg", 
+      replacement = "Alces.alces.jpg", 
+      x = fichier_photo
+    )
+  ) |> 
+  group_by(
+    species, 
+    id, # ID de l'espèce iNaturalist 
+    reformat_taxo, 
+    fichier_photo, 
+    default_photo_medium_url, 
+    default_photo_attribution, #photo_att, 
+    default_photo_attribution_name, # photo_att_nname, 
+    MUS_NM_REG,
+    nom_commun_qc) |> 
+  summarise(n = sum(n)) |> 
+  ungroup() |> 
+  mutate(
+    fichier_photo = path.expand(file.path(
+          "../../evologie/", 
+          gsub(
+            pattern = "main_page_image", replacement = "main_page_image2", x = fichier_photo)
+        ))
+  ) 
+
+  # count_sp_information |> distinct(fichier_photo) 
+  
+downscale = FALSE
+if (downscale) {
+# Downscale your images to thumbnails first
+library(magick)
+ count_sp_information = count_sp_information |> 
+   mutate(img_src = fichier_photo)
+img_src = count_sp_information |> distinct(img_src) |> pull(img_src)
+# Example logic to apply to your image list if they are too big:
+dat_all = NULL
+
+for (photos_i in 1:length(img_src)) {
+  message(photos_i)
+  # Si la photo n'existe pas, passer au prochain
+  if(grepl(pattern = "evologie//NA", x = img_src[photos_i])) {next}
+  # Lire l'image
+  img <- image_read( img_src[photos_i])
+  # Établir l'échelle 
+  img_resized <- image_scale(img, "x200") # scale to 200px height
+  # Sortie
+  out = file.path("img/photos", basename(img_src[photos_i]))
+  # Écriture et diminution de la qualité 
+  image_write(image = img_resized, path = out, quality = 25)
+  link_update = data.frame(link = img_src[photos_i], outlink = out)
+  # Combine les données 
+  dat_all = bind_rows(dat_all, link_update)
+}
+
+write.csv2(
+  x = dat_all, file = "data/path_imgs.csv", row.names = FALSE)
+}
+
+# Assume que la jointure se fait avec les 
+count_sp_link = count_sp_information |>
+  mutate(fichier_photo = basename(fichier_photo)) |> 
+  left_join(
+    y = dat_all |> mutate(link = basename(link)), 
+    by = join_by(fichier_photo == link)
+  ) |> 
+    mutate(
+      fichier_photo = path.expand(file.path(
+           "..",
+          outlink
+        )))
+
+# Lire les régions 
+regqc = st_read(
+  dsn = file.path(
+    "../..",
+    "evologie/posts/guide_biodiv_qc/2025_05_24_Guide_biodiv_qc/data/partie_1/admin_geo/admin_reg_qc",
+    "mrc_s.gpkg"), 
+  quiet = TRUE) |> 
+  # Carte plus simple et rapide à dessiner 
+  st_simplify(dTolerance = 1e3)
+
+runion_raw = regqc |> 
+  group_by(MRS_NM_REG, MRS_CO_REG) |> 
+  summarise(geom = st_union(geom)) |> 
+  mutate(
+    # MRS_CO_REG = gsub("\\b0(\\d)", "\\1", as.numeric(MRS_CO_REG))|> as.character(), 
+    code_reg  = paste(MRS_CO_REG, MRS_NM_REG, sep = " ")
+  )
+
+# mapview::mapview(regqc, zcol = "MRS_NM_REG")
+
+# runion_raw |> 
+#   st_drop_geometry() |> 
+#   distinct(MRS_CO_REG, MRS_NM_REG) |> 
+#   datapasta::dpasta()
+
+region_noms = tibble::tribble(
+  ~MRS_CO_REG,                     ~MRS_NM_REG, ~MRS_NM_REG_short,
+  "01",             "Bas-Saint-Laurent", "Bas-St-Laurent",
+  "02",       "Saguenay–Lac-Saint-Jean", "Saguenay–LSJ",
+  "03",            "Capitale-Nationale", "C.-Nationale",
+  "04",                      "Mauricie", "Mauricie",
+  "05",                        "Estrie", "Estrie",
+  "06",                      "Montréal", "Montréal",
+  "07",                     "Outaouais", "Outaouais",
+  "08",         "Abitibi-Témiscamingue", "Abitibi-T",
+  "09",                     "Côte-Nord", "Côte-N.",
+  "10",                "Nord-du-Québec", "Nord-Qc",
+  "11", "Gaspésie–Îles-de-la-Madeleine", "Gaspésie–ÎDLM",
+  "12",          "Chaudière-Appalaches", "Chaudière-A.",
+  "13",                         "Laval", "Laval",
+  "14",                    "Lanaudière", "Lanaudière",
+  "15",                   "Laurentides", "Laurentides",
+  "16",                    "Montérégie", "Montérégie",
+  "17",              "Centre-du-Québec", "Centre-Qc"
+) |> mutate(
+  # MRS_CO_REG = gsub("\\b0(\\d)", "\\1", as.numeric(MRS_CO_REG)) |> as.character(), 
+  code_reg_small  = paste(MRS_CO_REG, MRS_NM_REG_short, sep = " ")
+)
+
+
+runion = runion_raw |> 
+  left_join(
+    y = region_noms, 
+    by = join_by(MRS_CO_REG, MRS_NM_REG)
+  )
+
+sp_list_fil_all_taxo = count_sp_link |> 
+  left_join(
+    y = runion |> sf::st_drop_geometry(), 
+    by = join_by(MUS_NM_REG == MRS_NM_REG)
+  ) |> 
+  # On doit retirer tous les URL == NA et donc pas de photo 
+  filter(!is.na(default_photo_medium_url))
+```
+
+## Carte du Québec
+
+```{r maps, echo=FALSE, warning=FALSE, message=FALSE, fig.width=7, fig.height=5, out.width="70%", fig.dpi=192}
+# Faire la carte 
+carte_qc = runion |> 
+  ggplot() +
+  geom_sf(
+    # show.legend = FALSE,
+    mapping = aes(
+      fill = code_reg_small, 
+      colour = code_reg_small
+    )
+  ) +  
+  ggrepel::geom_label_repel(
+    max.overlaps = Inf, 
+    segment.square  = FALSE,
+    segment.inflect = TRUE,
+    min.segment.length = 0.5,
+    label.size = 0,
+    fill = scales::alpha("white", .5),
+    aes(label = MRS_CO_REG, 
+        geometry = geom), 
+    stat = "sf_coordinates") +  
+  coord_sf(crs = 32198)+
+  scale_fill_viridis_d(name = "Région") + 
+  scale_colour_viridis_d(name = "Région") + 
+  # guides(fill = guide_legend(ncol = 2)) +
+  theme_void()+
+  theme(legend.text = element_text(size = 8))
+
+carte_qc
+# ggsave(plot = carte_qc, filename = "../img/carte_qc.png", width = 7, height = 5)
+```
+
+<!-- <div id="map-to-move"> -->
+<!--   ### Carte du Québec -->
+<!--   ![](../img/carte_qc.png) -->
+<!-- </div> -->
+
+```{r report_out, echo=FALSE}
+# Définir les 'classes' taxonomiques reformattées à montrer
+# target_classes <- c("Amphibia", 
+                    # "Squamata", "Testudines", "Mammalia", "Aves")
+target_classes <- c(
+  act,
+  "Mammifères", "Oiseaux", 
+  "Champignons", "Plantes", "Bobittes", "Poissons")
+regions <- sort(unique(sp_list_fil_all_taxo$code_reg_small))
+```
+
+
+<style>
+.nav > li > a {
+position: relative;
+display: block;
+padding: 5px 5px;
+font-size: 12px;
+}
+</style>
+
+
+```{r run_script, results='asis', echo=FALSE}
+# CSS snippet
+# margin-bottom: 0px : pas de bordure pour
+# padding: 0px; : pas de marge interne partout
+cat('
+<style>
+  .taxa-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .taxa-card { text-align: center; margin-bottom: 0px; border: 1px solid #eee; padding: 0px; border-radius: 8px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+  .taxa-img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; cursor: pointer; }
+  .taxa-info { margin-top: 2px; line-height: 1.0; }
+  .taxa-title { font-size: 0.8em; color: #2c3e50; }
+  .taxa-obs { font-size: 0.80em; display: block; margin-top: 4px; font-weight: bold; color: #2980b9; }
+</style>
+')
+
+# Génère les sections 
+for (current_class in target_classes) {
+  
+  # Premier niveau : Class
+# We add {.tabset} here so the Regions inside become secondary tabs
+# .tabset-dropdown : pour une liste déroulante
+  cat("\n##", current_class, "{.tabset}\n\n")
+  
+  class_data_global <- sp_list_fil_all_taxo |> 
+    filter(reformat_taxo == current_class)
+  
+  if (nrow(class_data_global) == 0) {
+    cat("Aucune donnée pour cette classe.\n\n")
+    next
+  }
+  
+  for (current_region in regions) {
+    
+    region_data <- class_data_global |> 
+      filter(code_reg_small == current_region) |> 
+      arrange(desc(n))
+    
+    if (nrow(region_data) > 0) {
+      # Retirer le 0 au début
+      reg_title = gsub("\\b0(\\d)", "\\1", current_region)
+      # Secondary Tab: The Region (Level 3)
+      cat("\n###", reg_title, "\n\n")
+      
+      # Clean grid opening using the CSS class
+      cat(sprintf('<div class="taxa-grid" style="grid-template-columns: repeat(%s, 1fr);">\n', params$num_cols))
+      
+      # Vectorized components generation (Much faster than row-by-row string parsing where possible)
+      for (i in 1:nrow(region_data)) {
+        row <- region_data[i, ]
+        
+        img_url <- if(is.na(row$default_photo_medium_url) || row$default_photo_medium_url == "") { "#" } else {
+          sprintf("https://www.inaturalist.org/taxa/%s", row$id)
+        }
+        # Change le nom du dossier avec photo en plus petite résolution
+        # img_src <- row$outlink
+        img_src <- row$fichier_photo
+        
+        # Gabarit HTML
+        # NE PAS METTRE D'ESPACE AU DÉBUT DU TEXTE HTML 
+        cat(sprintf(
+     '<div class="taxa-card">
+<a href="%s" target="_blank"><img src="%s" class="taxa-img"></a>
+<p class="taxa-info">
+<strong class="taxa-title">%s</strong><br>
+<span class="taxa-obs">%s Obs.</span>
+</p>
+</div>',
+          img_url, img_src, row$nom_commun_qc, format(row$n, big.mark=" ")
+        )
+        )
+      }
+      # Clore la grille 
+      cat('\n</div>\n\n') 
+    }
+  }
+}
+# <em style="font-size: 0.75em; color: #555;">%s</em><br>
+# <span style="font-size: 0.75em; color: #888;">(%s)</span><br>
+```
+
+
+## Références
+
+::: {#refs}
+:::
+
+
+### Photo attributions
+
+::: {style="font-size: 0.6em;"}
+```{r photolic, echo=FALSE, results='asis'}
+sp_list_fil_all_taxo |> 
+  distinct(default_photo_attribution_name) |> 
+  na.omit() |> 
+  pull() |> 
+  gsub(pattern = ", some rights reserved|, uploaded by.*$|, all rights reserved|no rights reserved|CC |\n|\\*\\*", 
+       replacement = "") |> 
+  # gsub(pattern = "\\(c\\)", replacement = "\u00A9") |> 
+  gsub(pattern = "\\(c\\) ", replacement = "") |> 
+  gsub(pattern = "@", replacement = "_at_") |> 
+  sort() |> 
+  cat(sep = "; ")
+```
+:::
+
+
+<!-- ```{js, echo=FALSE} -->
+<!-- $(document).ready(function() { -->
+<!--   // Wait until the document and TOC are fully initialized -->
+<!--   setTimeout(function() { -->
+<!--     // Append the map container to the built-in RMarkdown TOC container -->
+<!--     $('#map-to-move').appendTo('#toc'); -->
+<!--   }, 100);  -->
+<!-- }); -->
+<!-- ``` -->
+
+<!-- <style> -->
+<!-- .nav > li > a { -->
+<!--   position: relative; -->
+<!--   display: block; -->
+<!--   padding: 5px 5px; -->
+<!--   font-size: 12px; -->
+<!-- } -->
+
+<!-- /* Ensure the moved map behaves nicely inside the sidebar */ -->
+<!-- #toc #map-to-move { -->
+<!--   margin-top: 20px; -->
+<!--   padding: 10px; -->
+<!--   border-top: 1px solid #eee; -->
+<!-- } -->
+
+<!-- #toc #map-to-move img { -->
+<!--   max-width: 100%; -->
+<!--   height: auto; -->
+<!-- } -->
+<!-- </style> -->
