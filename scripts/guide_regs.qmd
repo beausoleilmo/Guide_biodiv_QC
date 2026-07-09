@@ -128,51 +128,8 @@ count_sp_information = select_sp_tout_reg |>
         ))
   ) 
 
-  # count_sp_information |> distinct(fichier_photo) 
-  
-downscale = FALSE
-if (downscale) {
-# Downscale your images to thumbnails first
-library(magick)
- count_sp_information = count_sp_information |> 
-   mutate(img_src = fichier_photo)
-img_src = count_sp_information |> distinct(img_src) |> pull(img_src)
-# Example logic to apply to your image list if they are too big:
-dat_all = NULL
-
-for (photos_i in 1:length(img_src)) {
-  message(photos_i)
-  # Si la photo n'existe pas, passer au prochain
-  if(grepl(pattern = "evologie//NA", x = img_src[photos_i])) {next}
-  # Lire l'image
-  img <- image_read( img_src[photos_i])
-  # Établir l'échelle 
-  img_resized <- image_scale(img, "x200") # scale to 200px height
-  # Sortie
-  out = file.path("img/photos", basename(img_src[photos_i]))
-  # Écriture et diminution de la qualité 
-  image_write(image = img_resized, path = out, quality = 25)
-  link_update = data.frame(link = img_src[photos_i], outlink = out)
-  # Combine les données 
-  dat_all = bind_rows(dat_all, link_update)
-}
-
-write.csv2(
-  x = dat_all, file = "data/path_imgs.csv", row.names = FALSE)
-}
-
 # Assume que la jointure se fait avec les 
-count_sp_link = count_sp_information #|>
-  # mutate(fichier_photo = basename(fichier_photo)) |> 
-  # left_join(
-  #   y = dat_all |> mutate(link = basename(link)), 
-  #   by = join_by(fichier_photo == link)
-  # ) |> 
-  #   mutate(
-  #     fichier_photo = path.expand(file.path(
-  #          "..",
-  #         outlink
-  #       )))
+count_sp_link = count_sp_information 
 
 # Lire les régions 
 regqc = st_read(
@@ -191,13 +148,6 @@ runion_raw = regqc |>
     # MRS_CO_REG = gsub("\\b0(\\d)", "\\1", as.numeric(MRS_CO_REG))|> as.character(), 
     code_reg  = paste(MRS_CO_REG, MRS_NM_REG, sep = " ")
   )
-
-# mapview::mapview(regqc, zcol = "MRS_NM_REG")
-
-# runion_raw |> 
-#   st_drop_geometry() |> 
-#   distinct(MRS_CO_REG, MRS_NM_REG) |> 
-#   datapasta::dpasta()
 
 region_noms = tibble::tribble(
   ~MRS_CO_REG,                     ~MRS_NM_REG, ~MRS_NM_REG_short,
@@ -300,7 +250,7 @@ font-size: 12px;
 </style>
 
 ```{r generate_image_dictionary, results='asis', echo=FALSE}
-# 1. Get unique species with valid images
+# Espècesuniques avec images
 unique_species <- sp_list_fil_all_taxo |> 
   distinct(id, fichier_photo) |> 
   filter(!is.na(fichier_photo) & fichier_photo != "")
@@ -310,49 +260,13 @@ cat('<style>\n:root {\n')
 for (i in 1:nrow(unique_species)) {
   row <- unique_species[i, ]
   
-  # Get your base64 string here (assuming you read the file and encode it)
-  # Let's say it looks like: "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+  # Fabriquer les caractères base64
   base64_string <- base64enc::base64encode(row$fichier_photo)
 
-  # Write it as a global CSS variable
+  # Mettre en variable global dans le CSS 
   cat(sprintf('  --img-sp-%s: url("data:image/jpeg;base64,%s");\n', row$id, base64_string))
 
 }
-
-
-# cat('/* Container Box Settings */
-# .taxa-img { 
-#   width: 100%; 
-#   height: 110px;       
-#   min-width: 110px;   
-#   min-height: 110px;   
-#   max-height: 110px;   
-#   display: block;
-#   cursor: pointer; 
-  
-#   /* THIS HANDLES LOCKING, CENTERING, AND CROPPING PERFECTLY */
-#   background-size: cover;
-#   background-position: center;
-#   background-repeat: no-repeat;
-# }
-
-# /* Mobile Adjustments */
-# @media (max-width: 600px) {
-#   .taxa-grid { 
-#     grid-template-columns: repeat(2, 1fr); 
-#     gap: 8px; 
-#   }
-#   .taxa-img {
-#     height: 95px;       
-#     min-height: 95px;
-#     max-height: 95px;
-#   }
-#   .taxa-title {
-#     font-size: 0.75em; 
-#   }
-# }
-# '
-# )
 
 cat('}\n</style>\n')
 ```
@@ -428,8 +342,6 @@ for (current_class in target_classes) {
     }
   }
 }
-# <em style="font-size: 0.75em; color: #555;">%s</em><br>
-# <span style="font-size: 0.75em; color: #888;">(%s)</span><br>
 ```
 
 
@@ -456,35 +368,3 @@ sp_list_fil_all_taxo |>
   cat(sep = "; ")
 ```
 :::
-
-
-<!-- ```{js, echo=FALSE} -->
-<!-- $(document).ready(function() { -->
-<!--   // Wait until the document and TOC are fully initialized -->
-<!--   setTimeout(function() { -->
-<!--     // Append the map container to the built-in RMarkdown TOC container -->
-<!--     $('#map-to-move').appendTo('#toc'); -->
-<!--   }, 100);  -->
-<!-- }); -->
-<!-- ``` -->
-
-<!-- <style> -->
-<!-- .nav > li > a { -->
-<!--   position: relative; -->
-<!--   display: block; -->
-<!--   padding: 5px 5px; -->
-<!--   font-size: 12px; -->
-<!-- } -->
-
-<!-- /* Ensure the moved map behaves nicely inside the sidebar */ -->
-<!-- #toc #map-to-move { -->
-<!--   margin-top: 20px; -->
-<!--   padding: 10px; -->
-<!--   border-top: 1px solid #eee; -->
-<!-- } -->
-
-<!-- #toc #map-to-move img { -->
-<!--   max-width: 100%; -->
-<!--   height: auto; -->
-<!-- } -->
-<!-- </style> -->
