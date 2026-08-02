@@ -5,11 +5,18 @@ Guide de biodiversité du Québec
 - Les données sont produites à partir du blogue Évologie
 
 ## Structure : 
-./scripts/control.R : Fait originallement pour controler des paramètres d'affichage (nb colonnes) et faire des tests pour la représentation des données
-./scripts/guide_regs.qmd : construit le guide en `.html`
+
+- `./scripts/control.R` : Générer le document
+- `./scripts/guide_regs.qmd` : document principal et construit le guide en `.html`
+
+## Ajout de modes nuit et jour 
+le fichier header.html contient des 
 
 ## Erreurs connues
 
-Si l'erreur : "Error: pandoc document conversion failed with error 9", c'est qu'il y a trop de photos
+Si erreur : "Error: pandoc document conversion failed with error 9", pandoc manque de mémoire. Cela peut prendre 52GB de mémoire (avec SWAP)
 
 Les espaces dans le code HTML sont importantes. 
+
+## 
+- Utilisation du modeule jour/nuit de https://github.com/glauberramos/inat

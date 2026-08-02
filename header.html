@@ -1,0 +1,82 @@
+<!-- iOS / Web App Meta Tags -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Biodiv QC" />
+<link rel="apple-touch-icon" href="../img/logo2.png" />
+
+<!-- Dark Mode CSS Logic -->
+<style>
+  body.dark-mode {
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
+  }
+  body.dark-mode .taxa-card {
+    background-color: #1e1e1e !important;
+    border-color: #333 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
+  }
+  body.dark-mode .taxa-title {
+    color: #ecf0f1 !important;
+  }
+  body.dark-mode .taxa-obs {
+    color: #3498db !important;
+  }
+  body.dark-mode .tocify, 
+  body.dark-mode .tocify-item {
+    background-color: #1e1e1e !important;
+    color: #ccc !important;
+    border-color: #333 !important;
+  }
+  body.dark-mode .nav-tabs > li.active > a {
+    background-color: #2c3e50 !important;
+    color: #fff !important;
+  }
+  body.dark-mode .nav-tabs > li > a {
+    color: #aaa !important;
+  }
+
+  /* Dark Mode Toggle Button */
+  #dark-mode-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  }
+</style>
+
+<!-- Dark Mode JavaScript Logic -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Create floating dark mode toggle button
+    var btn = document.createElement('button');
+    btn.id = 'dark-mode-toggle';
+    btn.innerHTML = '🌙';
+    document.body.appendChild(btn);
+
+    // Check saved preference or OS preference
+    var isDark = localStorage.getItem('darkMode') === 'true' || 
+                 (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+    if (isDark) {
+      document.body.classList.add('dark-mode');
+      btn.innerHTML = '☀️';
+    }
+
+    // Toggle button click handler
+    btn.addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      var darkModeActive = document.body.classList.contains('dark-mode');
+      btn.innerHTML = darkModeActive ? '☀️' : '🌙';
+      localStorage.setItem('darkMode', darkModeActive);
+    });
+  });
+</script>
