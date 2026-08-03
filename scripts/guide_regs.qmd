@@ -507,7 +507,7 @@ for (c_idx in seq_along(target_classes)) {
         img_url <- if (is.na(row$default_photo_medium_url) || row$default_photo_medium_url == "") {
           "#"
         } else {
-          sprintf("[https://www.inaturalist.org/taxa/%1$s](https://www.inaturalist.org/taxa/%1$s)", row$id)
+          sprintf("https://www.inaturalist.org/taxa/%1$s", row$id)
         }
         
         tags$div(
