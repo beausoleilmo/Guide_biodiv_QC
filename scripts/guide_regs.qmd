@@ -61,7 +61,7 @@ path.expand("~/Desktop/incubateur_blogue"),
 "2025_05_24_Guide_biodiv_qc/output/partie_2"
 )
 img_csv_file = file.path(
-    "data/path_imgs.csv")
+    "../data/path_imgs.csv")
 
 
 
@@ -327,10 +327,16 @@ carte_qc = runion |>
 #   )
 ```
 
-<div id="map-to-move">
-### Carte du Québec
-![](../img/carte_qc2.png)
-</div>
+```{r Carte_qc, echo=FALSE}
+knitr::raw_html('
+<details class="taxa-accordion" id="map-to-move">
+  <summary class="class-summary">Carte du Québec</summary>
+  <div class="accordion-content" style="text-align: center;">
+    <img src="../img/carte_qc2.png" alt="Carte du Québec" style="max-width: 100%; height: auto; border-radius: 6px;" />
+  </div>
+</details>
+')
+```
 
 ```{r report_out, echo=FALSE}
 # Définir les 'classes' taxonomiques reformattées à montrer
@@ -382,76 +388,181 @@ cat('}\n</style>\n')
 ```
 
 
+## Biodiversité
 
 
 ```{r run_script, results='asis', echo=FALSE}
-# CSS snippet
-# margin-bottom: 0px : pas de bordure pour
-# padding: 0px; : pas de marge interne partout
+library(htmltools)
+
+# CSS snippet with Dark Mode Support
 cat('
 <style>
-  .taxa-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  /* Base Grid & Card CSS */
+  .taxa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 15px; margin-top: 15px; }
   .taxa-card { text-align: center; margin-bottom: 0px; border: 1px solid #eee; padding: 0px; border-radius: 8px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
   .taxa-img { width: 100%; height: 100px; min-width: 110px; min-height: 110px; object-fit: cover; border-radius: 6px; cursor: pointer; background-size: cover; background-position: center; background-repeat: no-repeat;}
   .taxa-info { margin-top: 2px; line-height: 1.0; }
   .taxa-title { font-size: 0.8em; font-weight: bold; color: #2c3e50; }
   .taxa-obs { font-size: 0.80em; display: block; margin-top: 4px; margin-bottom: 4px; font-weight: bold; color: #2980b9; }
+
+  /* Class Accordion Styles */
+  details.taxa-accordion {
+    margin-bottom: 12px;
+    border: 1px solid #dcdfe6;
+    border-radius: 6px;
+    background-color: #ffffff;
+    overflow: hidden;
+  }
+  details.taxa-accordion summary.class-summary {
+    padding: 12px 16px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #2c3e50;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid transparent;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  details.taxa-accordion[open] summary.class-summary {
+    border-bottom-color: #dcdfe6;
+    background-color: #edf2f7;
+  }
+  .accordion-content {
+    padding: 12px;
+  }
+
+  /* ---------------------------------------------------- */
+  /* Dark Mode Overrides                                  */
+  /* ---------------------------------------------------- */
+  body.dark-mode details.taxa-accordion {
+    background-color: #1e1e1e !important;
+    border-color: #333333 !important;
+  }
+  body.dark-mode details.taxa-accordion summary.class-summary {
+    background-color: #262626 !important;
+    color: #e0e0e0 !important;
+  }
+  body.dark-mode details.taxa-accordion summary.class-summary:hover {
+    background-color: #303030 !important;
+  }
+  body.dark-mode details.taxa-accordion[open] summary.class-summary {
+    background-color: #2d3748 !important;
+    border-bottom-color: #333333 !important;
+    color: #ffffff !important;
+  }
+  
+  /* Dark Mode for inner Bootstrap Tabs */
+  body.dark-mode .nav-tabs {
+    border-bottom-color: #333 !important;
+  }
+  body.dark-mode .nav-tabs > li > a {
+    color: #aaa !important;
+    background-color: #1a1a1a !important;
+    border-color: #333 !important;
+  }
+  body.dark-mode .nav-tabs > li.active > a, 
+  body.dark-mode .nav-tabs > li.active > a:focus, 
+  body.dark-mode .nav-tabs > li.active > a:hover {
+    background-color: #2d3748 !important;
+    color: #fff !important;
+    border-color: #333 #333 transparent !important;
+  }
 </style>
 ')
 
-# Génère les sections 
-for (current_class in target_classes) {
-  
-  # Premier niveau : Class
-# We add {.tabset} here so the Regions inside become secondary tabs
-# .tabset-dropdown : pour une liste déroulante
-  cat("\n##", current_class, "{.tabset}\n\n")
+# Outer list for class accordions
+accordion_list <- list()
+
+for (c_idx in seq_along(target_classes)) {
+  current_class <- target_classes[c_idx]
   
   class_data_global <- sp_list_fil_all_taxo |> 
     filter(reformat_taxo == current_class)
   
   if (nrow(class_data_global) == 0) {
-    cat("Aucune donnée pour cette classe.\n\n")
     next
   }
   
-  for (current_region in regions) {
+  tab_headers <- list()
+  tab_contents <- list()
+  is_first <- TRUE
+  
+  for (r_idx in seq_along(regions)) {
+    current_region <- regions[r_idx]
     
     region_data <- class_data_global |> 
       filter(code_reg_small == current_region) |> 
       arrange(desc(n))
     
     if (nrow(region_data) > 0) {
-      # Retirer le 0 au début
-      reg_title = gsub("\\b0(\\d)", "\\1", current_region)
-      # Secondary Tab: The Region (Level 3)
-      cat("\n###", reg_title, "\n\n")
+      reg_title <- gsub("\\b0(\\d)", "\\1", current_region)
       
-      # Clean grid opening using the CSS class
-      # cat(sprintf('<div class="taxa-grid" style="grid-template-columns: repeat(%s, 1fr);">\n', params$num_cols))
-      cat('<div class="taxa-grid" style="grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));">\n')
+      # Unique identifiers for HTML tabs
+      tab_id <- sprintf("tab-%s-%s", c_idx, r_idx)
       
-      # Vectorized components generation (Much faster than row-by-row string parsing where possible)
-      for (i in 1:nrow(region_data)) {
+      # Build Cards
+      cards <- lapply(seq_len(nrow(region_data)), function(i) {
         row <- region_data[i, ]
-        
-        img_url <- if(is.na(row$default_photo_medium_url) || row$default_photo_medium_url == "") { "#" } else {
-          sprintf("https://www.inaturalist.org/taxa/%s", row$id)
+        img_url <- if (is.na(row$default_photo_medium_url) || row$default_photo_medium_url == "") {
+          "#"
+        } else {
+          sprintf("[https://www.inaturalist.org/taxa/%1$s](https://www.inaturalist.org/taxa/%1$s)", row$id)
         }
-        # Change le nom du dossier avec photo en plus petite résolution
-        # img_src <- row$outlink
-        img_src <- row$fichier_photo
         
-        # Gabarit HTML
-        # NE PAS METTRE D'ESPACE AU DÉBUT DU TEXTE HTML 
-        cat(sprintf('<div class="taxa-card"><a href="%s" target="_blank"><div class="taxa-img" style="background-image: var(--img-sp-%s);"></div></a><div class="taxa-info"><span class="taxa-title">%s</span><span class="taxa-obs">%s Obs.</span></div></div>', 
-        img_url, row$id, row$nom_commun_qc, format(row$n, big.mark=" ")))
-      }
-      # Clore la grille 
-      cat('\n</div>\n\n') 
+        tags$div(
+          class = "taxa-card",
+          tags$a(
+            href = img_url, target = "_blank",
+            tags$div(class = "taxa-img", style = sprintf("background-image: var(--img-sp-%s);", row$id))
+          ),
+          tags$div(
+            class = "taxa-info",
+            tags$span(class = "taxa-title", row$nom_commun_qc),
+            tags$span(class = "taxa-obs", sprintf("%s Obs.", format(row$n, big.mark = " ")))
+          )
+        )
+      })
+      
+      # Create Bootstrap Tab Header (LI)
+      tab_headers[[length(tab_headers) + 1]] <- tags$li(
+        class = if (is_first) "active" else NULL,
+        tags$a(
+          `data-toggle` = "tab",
+          href = paste0("#", tab_id),
+          reg_title
+        )
+      )
+      
+      # Create Bootstrap Tab Content Pane
+      tab_contents[[length(tab_contents) + 1]] <- tags$div(
+        id = tab_id,
+        class = sprintf("tab-pane fade %s", if (is_first) "in active" else ""),
+        tags$div(class = "taxa-grid", cards)
+      )
+      
+      is_first <- FALSE
     }
   }
+  
+  # Group tabs together inside the class section
+  if (length(tab_headers) > 0) {
+    tabs_container <- tags$div(
+      class = "tabbable",
+      tags$ul(class = "nav nav-tabs", tab_headers),
+      tags$div(class = "tab-content", tab_contents)
+    )
+    
+    accordion_list[[length(accordion_list) + 1]] <- tags$details(
+      class = "taxa-accordion",
+      tags$summary(class = "class-summary", current_class),
+      tags$div(class = "accordion-content", tabs_container)
+    )
+  }
 }
+
+# Safely print HTML without Pandoc errors
+knitr::raw_html(as.character(tagList(accordion_list)))
 ```
 
 
@@ -463,7 +574,13 @@ for (current_class in target_classes) {
 
 ### Photo attributions
 
-::: {style="font-size: 0.6em;"}
+
+<details class="taxa-accordion">
+  <summary class="class-summary">Crédits photographiques</summary>
+  <div class="accordion-content" style="font-size: 0.6em; line-height: 1.5; padding-top: 10px;">
+
+<!-- ::: {style="font-size: 0.6em;"} -->
+
 ```{r photolic, echo=FALSE, results='asis'}
 sp_list_fil_all_taxo |> 
   distinct(default_photo_attribution_name) |> 
@@ -477,4 +594,8 @@ sp_list_fil_all_taxo |>
   sort() |> 
   cat(sep = "; ")
 ```
-:::
+
+  </div>
+</details>
+
+<!-- ::: -->
