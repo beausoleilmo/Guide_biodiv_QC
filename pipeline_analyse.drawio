@@ -34,8 +34,8 @@
         <mxCell id="y9438prm-UOEO7Eu9yKx-13" edge="1" parent="1" source="y9438prm-UOEO7Eu9yKx-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="y9438prm-UOEO7Eu9yKx-11">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="y9438prm-UOEO7Eu9yKx-10" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Téléchargement" vertex="1">
-          <mxGeometry height="100" width="105" x="425" y="250" as="geometry" />
+        <mxCell id="y9438prm-UOEO7Eu9yKx-10" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Téléchargement API GBIF" vertex="1">
+          <mxGeometry height="110" width="120" x="425" y="240" as="geometry" />
         </mxCell>
         <mxCell id="y9438prm-UOEO7Eu9yKx-19" edge="1" parent="1" source="y9438prm-UOEO7Eu9yKx-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="y9438prm-UOEO7Eu9yKx-18">
           <mxGeometry relative="1" as="geometry" />
@@ -51,6 +51,9 @@
         </mxCell>
         <mxCell id="y9438prm-UOEO7Eu9yKx-15" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Grille H3 et admin" vertex="1">
           <mxGeometry height="100" width="105" x="200" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="y9438prm-UOEO7Eu9yKx-36" edge="1" parent="1" source="y9438prm-UOEO7Eu9yKx-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="y9438prm-UOEO7Eu9yKx-35">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="y9438prm-UOEO7Eu9yKx-18" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;" value="Données GBIF" vertex="1">
           <mxGeometry height="80" width="80" x="360" y="701" as="geometry" />
@@ -99,6 +102,18 @@
         </mxCell>
         <mxCell id="y9438prm-UOEO7Eu9yKx-31" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="Complétion des noms manuellement" vertex="1">
           <mxGeometry height="80" width="105" x="467.5" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="y9438prm-UOEO7Eu9yKx-38" edge="1" parent="1" source="y9438prm-UOEO7Eu9yKx-35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="y9438prm-UOEO7Eu9yKx-37">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="y9438prm-UOEO7Eu9yKx-35" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Aggrégation de données" vertex="1">
+          <mxGeometry height="100" width="105" x="347.5" y="810" as="geometry" />
+        </mxCell>
+        <mxCell id="y9438prm-UOEO7Eu9yKx-37" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="API iNaturalist" vertex="1">
+          <mxGeometry height="100" width="105" x="425" y="890" as="geometry" />
+        </mxCell>
+        <mxCell id="y9438prm-UOEO7Eu9yKx-39" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="API GBIF noms d&#39;espèces" vertex="1">
+          <mxGeometry height="100" width="105" x="255" y="890" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
