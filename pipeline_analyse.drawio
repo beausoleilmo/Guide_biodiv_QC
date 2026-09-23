@@ -64,7 +64,7 @@
             <mxPoint x="400" y="469" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="y9438prm-UOEO7Eu9yKx-20" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Jointure admin-H3 et GBIF" vertex="1">
+        <mxCell id="y9438prm-UOEO7Eu9yKx-20" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Jointure admin-H3 et GBIF-H3" vertex="1">
           <mxGeometry height="100" width="105" x="347.5" y="388" as="geometry" />
         </mxCell>
         <mxCell id="y9438prm-UOEO7Eu9yKx-22" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Opération" vertex="1">
@@ -103,7 +103,7 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="y9438prm-UOEO7Eu9yKx-31" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="Complétion des noms manuellement" vertex="1">
-          <mxGeometry height="80" width="105" x="467.5" y="419" as="geometry" />
+          <mxGeometry height="80" width="105" x="467.5" y="420" as="geometry" />
         </mxCell>
         <mxCell id="y9438prm-UOEO7Eu9yKx-38" edge="1" parent="1" source="y9438prm-UOEO7Eu9yKx-35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="y9438prm-UOEO7Eu9yKx-37">
           <mxGeometry relative="1" as="geometry" />
