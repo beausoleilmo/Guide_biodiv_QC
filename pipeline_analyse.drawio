@@ -94,6 +94,12 @@
         <mxCell id="y9438prm-UOEO7Eu9yKx-29" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Standardisation des noms d&#39;espèces GBIF" vertex="1">
           <mxGeometry height="120" width="120" x="340" y="560" as="geometry" />
         </mxCell>
+        <mxCell id="y9438prm-UOEO7Eu9yKx-32" edge="1" parent="1" source="y9438prm-UOEO7Eu9yKx-31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="y9438prm-UOEO7Eu9yKx-27">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="y9438prm-UOEO7Eu9yKx-31" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="Complétion des noms manuellement" vertex="1">
+          <mxGeometry height="80" width="105" x="467.5" y="470" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
