@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="-2uNH3fpLBFnpR-2-aea">
-    <mxGraphModel dx="1557" dy="982" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="644" dy="406" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -40,7 +40,7 @@
         <mxCell id="y9438prm-UOEO7Eu9yKx-19" edge="1" parent="1" source="y9438prm-UOEO7Eu9yKx-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="y9438prm-UOEO7Eu9yKx-18">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="y9438prm-UOEO7Eu9yKx-11" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Préparation des données GBIF" vertex="1">
+        <mxCell id="y9438prm-UOEO7Eu9yKx-11" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Préparation des données GBIF + H3" vertex="1">
           <mxGeometry height="100" width="105" x="347.5" y="269" as="geometry" />
         </mxCell>
         <mxCell id="y9438prm-UOEO7Eu9yKx-14" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;" value="Données eBird points chauds" vertex="1">
