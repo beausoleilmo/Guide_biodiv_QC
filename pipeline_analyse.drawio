@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="-2uNH3fpLBFnpR-2-aea">
-    <mxGraphModel dx="1653" dy="1635" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1814" dy="1742" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -277,7 +277,7 @@
         <mxCell id="TI70ZHXocTm5arBs2xKE-53" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Publication statique &amp;nbsp;sur Github page&amp;nbsp;" vertex="1">
           <mxGeometry height="100" width="105" x="644" y="1380" as="geometry" />
         </mxCell>
-        <mxCell id="TI70ZHXocTm5arBs2xKE-55" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Treemaps" vertex="1">
+        <mxCell id="TI70ZHXocTm5arBs2xKE-55" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Treemaps par groupe d&#39;espèces" vertex="1">
           <mxGeometry height="100" width="120" x="180" y="1030" as="geometry" />
         </mxCell>
         <mxCell id="TI70ZHXocTm5arBs2xKE-59" edge="1" parent="1" source="TI70ZHXocTm5arBs2xKE-57" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="y9438prm-UOEO7Eu9yKx-37">
