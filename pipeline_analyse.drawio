@@ -35,7 +35,7 @@
         <mxCell id="y9438prm-UOEO7Eu9yKx-13" edge="1" parent="1" source="y9438prm-UOEO7Eu9yKx-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="y9438prm-UOEO7Eu9yKx-11">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="y9438prm-UOEO7Eu9yKx-10" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="API GBIF Téléchargement&amp;nbsp;" vertex="1">
+        <mxCell id="y9438prm-UOEO7Eu9yKx-10" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;fillColor=#60a917;fontColor=#ffffff;strokeColor=#2D7600;" value="API GBIF Téléchargement&amp;nbsp;" vertex="1">
           <mxGeometry height="110" width="120" x="425" y="175" as="geometry" />
         </mxCell>
         <mxCell id="y9438prm-UOEO7Eu9yKx-19" edge="1" parent="1" source="y9438prm-UOEO7Eu9yKx-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="y9438prm-UOEO7Eu9yKx-18">
@@ -70,7 +70,7 @@
             <mxPoint x="660" y="155" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="y9438prm-UOEO7Eu9yKx-23" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="API eBird Téléchargement" vertex="1">
+        <mxCell id="y9438prm-UOEO7Eu9yKx-23" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;fillColor=#60a917;fontColor=#ffffff;strokeColor=#2D7600;" value="API eBird Téléchargement" vertex="1">
           <mxGeometry height="110" width="120" x="600" y="40" as="geometry" />
         </mxCell>
         <mxCell id="TI70ZHXocTm5arBs2xKE-3" edge="1" parent="1" source="y9438prm-UOEO7Eu9yKx-25" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0;entryDx=0;entryDy=0;" target="TI70ZHXocTm5arBs2xKE-1">
@@ -112,7 +112,7 @@
         <mxCell id="y9438prm-UOEO7Eu9yKx-37" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="API iNaturalist liens et photos" vertex="1">
           <mxGeometry height="100" width="105" x="426" y="1119" as="geometry" />
         </mxCell>
-        <mxCell id="y9438prm-UOEO7Eu9yKx-39" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="API GBIF noms d&#39;espèces" vertex="1">
+        <mxCell id="y9438prm-UOEO7Eu9yKx-39" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;fillColor=#60a917;fontColor=#ffffff;strokeColor=#2D7600;" value="API GBIF noms d&#39;espèces" vertex="1">
           <mxGeometry height="100" width="105" x="180" y="910" as="geometry" />
         </mxCell>
         <mxCell id="y9438prm-UOEO7Eu9yKx-44" edge="1" parent="1" source="y9438prm-UOEO7Eu9yKx-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="y9438prm-UOEO7Eu9yKx-42">
@@ -163,8 +163,11 @@
         <mxCell id="TI70ZHXocTm5arBs2xKE-16" edge="1" parent="1" source="TI70ZHXocTm5arBs2xKE-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="TI70ZHXocTm5arBs2xKE-4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="TI70ZHXocTm5arBs2xKE-14" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="&amp;nbsp;Téléchargement Données Québec" vertex="1">
+        <mxCell id="TI70ZHXocTm5arBs2xKE-14" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;fillColor=#60a917;fontColor=#ffffff;strokeColor=#2D7600;" value="&amp;nbsp;Téléchargement Données Québec" vertex="1">
           <mxGeometry height="110" width="120" x="140.5" y="-180" as="geometry" />
+        </mxCell>
+        <mxCell id="TI70ZHXocTm5arBs2xKE-17" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;" value="Données noms d&#39;espèces et type d&#39;organismes" vertex="1">
+          <mxGeometry height="80" width="80" x="650" y="645" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
