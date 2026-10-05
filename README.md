@@ -1,8 +1,9 @@
 # Guide_biodiv_QC
 Guide de biodiversité du Québec
 
-## Suppositions 
-- Les données sont produites à partir du blogue Évologie
+- Les données GBIF sont automatiquement téléchargé pour le Québec 
+- Liste d'espèce avec noms standardisé au Québec n'existe pas. Il faut créer 
+cette liste avec un ensemble de données publiques puis compléter manuellement. 
 
 ## Structure : 
 
