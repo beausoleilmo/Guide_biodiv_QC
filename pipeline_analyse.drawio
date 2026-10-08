@@ -343,6 +343,12 @@
         <mxCell id="UV6OOaDdTsBbkB6ATYea-2" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;fillColor=#60a917;fontColor=#ffffff;strokeColor=#2D7600;" value="Tableau du PDF" vertex="1">
           <mxGeometry height="120" width="120" x="1270" y="890" as="geometry" />
         </mxCell>
+        <mxCell id="UV6OOaDdTsBbkB6ATYea-7" edge="1" parent="1" source="UV6OOaDdTsBbkB6ATYea-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="TI70ZHXocTm5arBs2xKE-33">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="UV6OOaDdTsBbkB6ATYea-6" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;" value="Nom de type ou groupe vernaculaire d&#39;organisme" vertex="1">
+          <mxGeometry height="80" width="80" x="737" y="400" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
