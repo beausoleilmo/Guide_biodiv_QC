@@ -374,7 +374,7 @@
             <mxPoint x="842" y="1560" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="sWTFyH3Y99DdFEFj0qT4-6" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;fillColor=#60a917;fontColor=#ffffff;strokeColor=#2D7600;" value="API iNaturalist noms communs" vertex="1">
+        <mxCell id="sWTFyH3Y99DdFEFj0qT4-6" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;fillColor=#60a917;fontColor=#ffffff;strokeColor=#2D7600;" value="API iNaturalist noms communs (ID)" vertex="1">
           <mxGeometry height="100" width="105" x="617" y="1570" as="geometry" />
         </mxCell>
         <mxCell id="sWTFyH3Y99DdFEFj0qT4-9" edge="1" parent="1" source="sWTFyH3Y99DdFEFj0qT4-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="sWTFyH3Y99DdFEFj0qT4-8" value="">
