@@ -1,12 +1,10 @@
 # Téléchargement des fichiers du GRHQ sous format GDB
-library(httr)
-library(jsonlite)
-library(stringr)
-
-# 1. Define output directory and target API URL
+#  Define output directory and target API URL
 output_dir <- "/Volumes/g_magni/data/DonneeQuebec/hydro/donnees_qc_downloads"
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
+
+# Requête à l'API de données Québec en fournissant l'ID des données
 data <- httr2::request(
   "https://www.donneesquebec.ca/recherche/api/3/action/datastore_search"
 ) |>
@@ -26,16 +24,19 @@ download_urls <- data |>
   dplyr::pull(FGDB) |>
   unique()
 
-# 4. Download and unzip all files
-# for (fichier_i in seq_along(download_urls)) {
-#
+# Télécharge et unzip les fichiers
+# TODO : séparer le télchargement et UNZIP
+# NOTE :
 # 15 : fichier 10_2.zip avait un problème...
 # Error in unzip(dest_path, exdir = unzip_dir) :
-#   Cannot extract entry `GRHQ_10BC.gdb/a00000001.freelist` from archive `/Volumes/g_magni/data/DonneeQuebec/hydro/do
-# nnees_qc_downloads/10_2.zip`: unsupported feature @rzip.c:198 (R_zip_error_handler)
-# BESOIN d'utiliser le terminal sur macOS
+#   Cannot extract entry `GRHQ_10BC.gdb/a00000001.freelist`
+#   from archive
+#   `/Volumes/g_magni/data/DonneeQuebec/hydro/donnees_qc_downloads/10_2.zip`:
+#   unsupported feature @rzip.c:198 (R_zip_error_handler)
+# Solution :
+# --> BESOIN d'utiliser le terminal sur macOS : commande suivante
 # --> unzip 10_2.zip
-for (fichier_i in 16:length(download_urls)) {
+for (fichier_i in 1:length(download_urls)) {
   url <- download_urls[fichier_i]
   file_name <- basename(url)
   dest_path <- file.path(output_dir, file_name)
@@ -48,8 +49,8 @@ for (fichier_i in 16:length(download_urls)) {
     file_name
   ))
 
-  request(url) |>
-    req_perform(path = dest_path)
+  httr2::request(url) |>
+    httr2::req_perform(path = dest_path)
 
   # Unzip to a dedicated subfolder per file
   unzip_dir <- file.path(output_dir, tools::file_path_sans_ext(file_name))

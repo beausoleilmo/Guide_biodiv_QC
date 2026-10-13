@@ -4,13 +4,15 @@
 # treat unset variables as an error (-u), and fail on pipe errors (-o pipefail).
 set -euo pipefail
 
-# PATH_COPY="output/images/main_page_image output/images/main_page_image2"
-# PATH_PHOTOS="$HOME/Github_proj/Guide_biodiv_QC/output/images/main_page_image2/"
+# PATH_COPY_IN="output/images/main_page_image"
+# PATH_COPY_OUT="output/images/main_page_image2"
+# PATH_PHOTOS="output/images/main_page_image2"
 
 # Copier les données (doit supprimer main_page_image2 avant)
-cp -R PATH_COPY
-
-find $PATH_PHOTOS -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) -exec magick mogrify -resize 200 {} +
+# -R pour recursive
+# cp -R $PATH_COPY_IN $PATH_COPY_OUT
+#
+# find $PATH_PHOTOS -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) -exec magick mogrify -resize 200 {} +
 
 # ------------------------------------------------------------------------------
 # Usage Function
@@ -24,7 +26,8 @@ Description:
   (e.g., main_page_image/* --> main_page_image2/*)
   Réduire la taille des photos au format PNG et JPG, 
   écrase les fichiers originaux dans le dossier de copie). 
-  L'argument $(resize 200) compromis de résolution et d'espace de stockage.
+  L'argument 'resize 200' est un  compromis de résolution et d'espace 
+  de stockage.
 
 Arguments:
   source_path  Chemin d'accès du dossier source à copier.
@@ -32,10 +35,16 @@ Arguments:
                images et réduire leur taille.
 
 Example:
-  $0 "output/images/main_page_image" "$HOME/Github_proj/Guide_biodiv_QC/output/images/main_page_image2/"
+  bash $0 "output/images/main_page_image" "output/images/main_page_image2/"
 EOF
   exit 1
 }
+
+# Vérification que l'utilisateur demande de l'aide
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 1
+fi
 
 # ------------------------------------------------------------------------------
 # Input Validation & Dependency Checks

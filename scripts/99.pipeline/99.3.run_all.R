@@ -11,11 +11,12 @@
 #
 
 # Préparation de l'environnement, paramètres, résolutions.
+# NOTE : besoin d'internet pour MAJ des progiciels
 source("./scripts/99.pipeline/99.0_prep.R")
 # Données GBIF
 source("./scripts/99.pipeline/99.1_obtenir_donnees_GBIF.R")
 
-# Préparation des données admin (régions) et eBird
+# Préparation des données admin (régions), eBird et GRHQ
 if (FALSE) {
   # Préparation des données
   source("./scripts/99.pipeline/99.1_prep_aux_data.R")
@@ -28,10 +29,24 @@ source("./scripts/99.pipeline/99.2_charge_donnees.R")
 # charge dans 99.0_prep.R qui affecte plusieurs scripts.
 
 message("--> Charge les données avec duckdb")
-## Ouverture de Connection duckdb
+## Joindre les données GBIF et listes de noms français (en connection duckdb)
 source(
   file = file.path(
     "./scripts/5.1.prep_data.R"
+  )
+)
+
+# Statistiques regroupées taxonomiquement et spatialement
+source(
+  file = file.path(
+    "./scripts/5.2.Exploration_compte_gbif.R"
+  )
+)
+
+message("--> Carte d'observation dues données GBIF au Québec")
+source(
+  file = file.path(
+    "./scripts/exploration_donnees/carte_observations_GBIF_quebec.R"
   )
 )
 
@@ -46,6 +61,10 @@ source(
   )
 )
 
+# Exploration des données sous forme de 'treemaps'
+# Permet de voir la distribution des espèces selon:
+#  --> Le nombre d'observations
+#  --> Le nombre d'espèces dans chaque groupe taxonomique
 message("--> Visualisation NB observations")
 source(
   file = file.path(
@@ -53,6 +72,7 @@ source(
   )
 )
 
+# Treemap interactif
 message("--> Visualisation NB observations interactive")
 source(
   file = file.path(
@@ -62,20 +82,30 @@ source(
 
 # DÉPLIANT!!! -------------------------------------------------------------
 message("--> Obtient compte d'espèces par région")
+# NOTE : la sélection d'espèce se fait de manière à REPRÉSENTER différents
+# groupes taxonomiques.
+# Cela permet de réduire le nombre de requête à faire pour iNaturalist
 source(
   file = file.path(
     "./scripts/7.selection_especes_region.R"
   )
 )
 
-
-# message("--> ")
+# message("--> Compte d'espèce totales")
 # source(
 #   file = file.path(
 #     incub, "scripts/7.selection_especes.R"
 #   ))
 
 # message("--> Extraire le nom des espèces GBIF")
+# À partir des listes d'espèces de différentes sources
+# Extraire les noms franâis et exporter en parquet
+# la liste d'espèces est ensuite passé dans `rgbif::name_backbone_checklist`
+# pour avoir des données 'standardisé'.
+# NOTE : un filtre sur la 'confiance des données' avec l'API de GBIF fait
+# que ce ne sont pas toutes les espèces qui se retrouvent dans les données
+# finales.
+#
 # source(
 #   file = file.path(
 #     incub, "scripts/espece_match_gbif.R"
@@ -99,7 +129,32 @@ source(
 )
 
 # 9 pour télécharger les nouvelles photos
+# source(file.path("scripts/9.Photos_iNaturalist.R"))
+
 # utils/10.reduce_image_size.sh pour réduire la taille des images.
+# Rendre le script exécutable
+system2(
+  command = "chmod",
+  args = c("+x", normalizePath("scripts/utils/10.reduce_image_size.sh"))
+)
+
+# Afficher l'aide et description de la fonction
+system2(
+  command = "bash",
+  args = c(
+    "scripts/utils/10.reduce_image_size.sh",
+    "--help"
+  )
+)
+# Exécution de la réduction de la taille des photos
+system2(
+  command = "bash",
+  args = c(
+    "scripts/utils/10.reduce_image_size.sh",
+    "output/images/main_page_image",
+    "output/images/main_page_image2/"
+  )
+)
 # 99.guide
 # Aller dans projet Github "Guide_biodiv_Qc"
 # --> https://github.com/beausoleilmo/Guide_biodiv_QC

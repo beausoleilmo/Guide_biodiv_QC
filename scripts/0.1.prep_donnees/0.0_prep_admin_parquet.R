@@ -38,6 +38,7 @@ muni <- duckspatial::ddbs_open_dataset(
 # 15 s
 tictoc::tic("Union admin du Québec")
 muni_union <- duckspatial::ddbs_union(muni)
+# muni_union  |>  st_as_sf()
 tictoc::toc()
 
 # Exportation des données en parquet
@@ -47,6 +48,17 @@ duckspatial::ddbs_write_dataset(
   path = file.path(
     "data/mod",
     "munic_s.parquet"
+  ),
+  parquet_compression = "zstd",
+  options = list(COMPRESSION_LEVEL = 12),
+  overwrite = TRUE
+)
+
+duckspatial::ddbs_write_dataset(
+  data = muni_union,
+  path = file.path(
+    "data/mod",
+    "munic_union_s.parquet"
   ),
   parquet_compression = "zstd",
   options = list(COMPRESSION_LEVEL = 12),
@@ -63,10 +75,6 @@ duckspatial::ddbs_write_dataset(
 # #### Jointure avec H3
 # con <- evolovr::setup_duckdb()
 # admin <- file.path("data/mod", "munic_s.parquet")
-# library(dplyr)
-# library(dbplyr)
-# library(glue)
-# library(DBI)
 #
 #   colsAdmin = c(
 #     "MUS_NM_MUN",

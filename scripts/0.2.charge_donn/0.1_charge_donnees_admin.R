@@ -18,3 +18,11 @@ regqc <- duckspatial::ddbs_open_dataset(
   sf::st_transform(
     crs = projetCRS
   )
+
+regqc_union <- duckspatial::ddbs_open_dataset(
+  path = file.path("data/mod", "munic_union_s.parquet")
+) |>
+  st_as_sf() |>
+  sf::st_transform(
+    crs = projetCRS
+  )

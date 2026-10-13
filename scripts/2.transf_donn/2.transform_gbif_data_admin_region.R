@@ -47,7 +47,9 @@ paths <- list(
   ),
 
   out_admin_pq = file.path(
-    "data/mod", "munic_s.parquet"),
+    "data/mod",
+    "munic_s.parquet"
+  ),
   # out_admin_pq = file.path(
   #   "output",
   #   "admin",
@@ -68,14 +70,14 @@ message(" --> .log des données GBIF originales")
 generate_gbif_log(
   con = NULL,
   path_in = paths$gbif_raw,
-  path_log = paths$out_path_log, 
+  path_log = paths$out_path_log,
   notes = "Fichier brute des données GBIF avec polygone grossier."
 )
 
 
 message(" --> Prépare la table admin-H3 : prep_h3_admin()")
-# NOTE : Changement de stratégie : 
-# on va ajouter l'intersection spatiale des municipalités directement avec GBIF 
+# NOTE : Changement de stratégie :
+# on va ajouter l'intersection spatiale des municipalités directement avec GBIF
 if (!file.exists(paths$out_admin_pq)) {
   # 910-2500 sec à 10L (15-45 min)
   # Inputs : 1. données in_admin_shp
@@ -105,7 +107,11 @@ join_gbif_admin(
   # des herbiers
   # Voir :
   # https://www.gbif.org/occurrence/search?datasetKey=2fd02649-fc08-4957-9ac5-2830e072c097
-  basisRec = c("HUMAN_OBSERVATION", "MACHINE_OBSERVATION", "PRESERVED_SPECIMEN"),
+  basisRec = c(
+    "HUMAN_OBSERVATION",
+    "MACHINE_OBSERVATION",
+    "PRESERVED_SPECIMEN"
+  ),
   taxRank = c("SPECIES", "SUBSPECIES", "VARIETY"),
   kingdm = c("Chromista", "Fungi", "Plantae", "Animalia"),
   coordUncertainM = 200
@@ -122,8 +128,7 @@ evolovr::generate_gbif_log(
     "output/biodiv/gbif_data/",
     sprintf("gbif_prep_h3_res_%s.log", res_fine)
   ),
-  notes = 
-  "Fichier de données transformé
+  notes = "Fichier de données transformé
 (filtre basisOfRecord, occurrenceStatus, taxonRank, 
-coordinateUncertaintyMeters")
+coordinateUncertaintyMeters"
 )

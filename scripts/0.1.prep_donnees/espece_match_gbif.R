@@ -58,18 +58,10 @@
 #  --> Type_FR :
 #      Création du Type_FR basé sur les données de wild species Canada
 
-# Progiciels
-library(dplyr)
-library(tidyr)
-library(readxl)
-library(janitor)
-library(rgbif)
-library(taxize) # https://www.r-bloggers.com/2011/11/use-case-combining-taxize-and-rgbif/
-
 out_liste <- "output/biodiv/liste_especes"
 dir.create(
   path = file.path(out_liste),
-  showWarnings = FALS,
+  showWarnings = FALSE,
   recursive = TRUE
 )
 
@@ -148,7 +140,13 @@ liste_nom_bryophytes <- "BRYOQUEL_Liste_des_Bryophytes_Qc-Labr.xlsx"
 #      - Lichen Québec
 #        - https://lichens.quebec
 liste_nom_lichen <- "lichen_quebec_corr.csv"
-
+#      - Liste française des oiseaux du monde, version 31 mars 2024
+#        - https://docs.google.com/spreadsheets/d/1M7p05FdFL9PL4uTmCgILK4sI52uZ32R7/edit?gid=779731305#gid=779731305
+#        - https://www.quebecoiseaux.org/fr/noms-fr-oiseaux
+liste_nom_oiseaux_fr <- "Liste_francaise_oiseaux_monde_v31_03_2024.xlsx"
+#      -
+#      - https://www.quebecoiseaux.org/fr/liste-oiseaux-quebec
+liste_nom_oiseaux_fr_qc <- "liste-oiseaux-quebec_v2024-11.csv"
 
 ################################
 # Charger les listes d'espèces --------------------------------------------
@@ -235,7 +233,7 @@ wild_species_canada_list <- wild_sp_canada |>
 # Faune vertébrée : Liste de la faune vertébrée du Québec (LFVQ) en CSV ------
 # Utilisation des noms communs pour cette liste
 #
-gr_lfvq <- tribble(
+gr_lfvq <- tibble::tribble(
   ~classe          , ~groupe_taxonomique       ,
   "Actinopterygii" , "Fishes - Poissons"       ,
   "Amphibia"       , "Amphibians - Amphibiens" ,
@@ -265,7 +263,55 @@ list_faune_vertebree_qc <- read.csv(
   dplyr::mutate(
     nom_liste = liste_faune_vert_qc
   ) |>
-  dplyr::left_join(y = gr_lfvq, by = join_by(classe))
+  dplyr::left_join(y = gr_lfvq, by = dplyr::join_by(classe))
+
+
+################################
+# Liste des noms français des oiseaux ----------------------------------------
+# liste_oiseaux_fr <- readxl::read_xlsx(
+#   path = file.path(
+#     dossier_liste_especes,
+#     liste_nom_oiseaux_fr
+#   ),
+#   sheet = "liste",
+#   guess_max = 2e6
+# ) |>
+#   janitor::clean_names() |>
+#   dplyr::mutate(
+#     nom_liste = liste_nom_oiseaux_fr
+#   ) |>
+#   select(
+#     nom_scientifique,
+#     nom_anglais,
+#     nom_francais,
+#     nom_liste
+#   )
+#
+
+liste_oiseaux_fr_qc <- read.csv(
+  file = file.path(
+    dossier_liste_especes,
+    liste_nom_oiseaux_fr_qc
+  )
+) |>
+  janitor::clean_names() |>
+  dplyr::mutate(
+    nom_liste = liste_nom_oiseaux_fr_qc
+  ) |>
+  dplyr::select(
+    nom_scientifique,
+    nom_anglais,
+    nom_francais,
+    nom_liste
+  ) |>
+  # Correction du nom de la paruline jaune qui a changé
+  dplyr::mutate(
+    nom_scientifique = if_else(
+      condition = nom_scientifique == "Setophaga petechia",
+      true = "Setophaga aestiva",
+      false = nom_scientifique
+    )
+  )
 
 
 ################################
@@ -312,8 +358,6 @@ vascanqc <- readr::read_delim(
 
 ################################
 # Bryophytes ----------------------------------------------------------------
-# TODO :
-# pas ajouté encore à la liste des données
 bryoquel <- readxl::read_xlsx(
   path = file.path(
     dossier_liste_especes,
@@ -352,6 +396,8 @@ bryoquel <- readxl::read_xlsx(
 
 ################################
 # Lichen ----------------------------------------------------------------
+# Courriel 2026-10-07 17:42. Autorisation d'utiliser les noms français
+# Communication avec Janie Collin, info@lichens.quebec
 lichens <- read.csv2(
   file = file.path(
     dossier_liste_especes,
@@ -374,13 +420,6 @@ lichens <- read.csv2(
     groupe_taxonomique
   )
 
-
-colnames(lichens)
-
-lichens |>
-  head()
-
-
 ################################
 # Champignons ----------------------------------------------------------------
 mycoliste <- readxl::read_xlsx(
@@ -393,25 +432,25 @@ mycoliste <- readxl::read_xlsx(
   janitor::clean_names() |>
   dplyr::mutate(
     nom_liste = liste_nom_champignons,
-    nom_francais = ifelse(
-      test = nom_francais == "Nom français indéterminé",
-      yes = "",
-      no = nom_francais
+    nom_francais = dplyr::if_else(
+      condition = nom_francais == "Nom français indéterminé",
+      true = "",
+      false = nom_francais
     ),
-    classe = ifelse(
-      test = classe == "n. d.",
-      yes = "",
-      no = classe
+    classe = dplyr::if_else(
+      condition = classe == "n. d.",
+      true = "",
+      false = classe
     ),
-    ordre = ifelse(
-      test = ordre == "n. d.",
-      yes = "",
-      no = ordre
+    ordre = dplyr::if_else(
+      condition = ordre == "n. d.",
+      true = "",
+      false = ordre
     ),
-    famille = ifelse(
-      test = famille == "n. d.",
-      yes = "",
-      no = famille
+    famille = dplyr::if_else(
+      condition = famille == "n. d.",
+      true = "",
+      false = famille
     ),
     # Probablement pas exact pour tous mais 'approximation...'
     groupe_taxonomique = "Macrofungi - Macrochampignons"
@@ -466,6 +505,12 @@ nb_rangees_reste <- function(master_dat) {
     dat2 = lichens,
     colsp = "nom_scientifique"
   )
+
+  met_oiseaux <- verif_noms_especes(
+    dat1 = master_dat,
+    dat2 = liste_oiseaux_fr_qc,
+    colsp = "nom_scientifique"
+  )
   met_bryo <- verif_noms_especes(
     dat1 = master_dat,
     dat2 = bryoquel,
@@ -479,8 +524,6 @@ nb_rangees_reste <- function(master_dat) {
   total_metriques <- Reduce(`+`, mget(var_metriques))
   return(total_metriques)
 }
-nb_rangees_reste(master_dat = wsc)
-nb_rangees_reste(master_dat = liste_esp_joint)
 
 liste_esp_joint <- wsc |>
 
@@ -518,6 +561,13 @@ liste_esp_joint <- wsc |>
   # Ajouter lichen
   dplyr::full_join(
     y = lichens,
+    by = dplyr::join_by(
+      nom_scientifique == nom_scientifique
+    )
+  ) |>
+  # Ajouter oiseaux français pour le Québec seulement
+  dplyr::full_join(
+    y = liste_oiseaux_fr_qc,
     by = dplyr::join_by(
       nom_scientifique == nom_scientifique
     )
@@ -571,9 +621,28 @@ liste_esp_joint <- wsc |>
     ),
     -dplyr::matches("^nom_commun_en_francais\\."),
     -c(nom_commun_en_anglais, noms_francais_acceptes)
+  ) |>
+  # séparation colonnes de wild species et les informations ajoutés pour les
+  # listes d'espèces
+  tidyr::separate(
+    groupe_taxonomique,
+    into = c("Type_EN", "Type_FR"),
+    sep = " - "
+  ) |>
+  # Extraire ce qui se trouve entre \"TEXTE\"
+  dplyr::mutate(
+    desc_fr = stringr::str_extract(
+      string = fr_justification_fr,
+      # Match tout ".*" ce qui se retrouve entre " et "
+      pattern = "(?<=\").*(?=\")"
+    )
   )
 
 
+nb_rangees_reste(master_dat = wsc)
+nb_rangees_reste(master_dat = liste_esp_joint)
+
+# NOTE : ancienne manière à la mitaine, mais pas super à maintenir...
 #   dplyr::mutate(
 #     # classe             = coalesce(pick(starts_with("classe"))),
 # classe = do.call(dplyr::coalesce, dplyr::pick(dplyr::starts_with("classe"))),
@@ -741,6 +810,10 @@ listes_especes_api_gbif <- liste_esp_joint |>
     id = dplyr::row_number()
   )
 
+liste_esp_joint |>
+  dplyr::count(nom_scientifique, nom_francais) |>
+  dplyr::filter(n > 1)
+
 message(sprintf("Nb de rangées : %s", nrow(listes_especes_api_gbif)))
 
 
@@ -753,14 +826,15 @@ message("Extraire les noms avec l'API de GBIF (rgbif)")
 # dans la banque de données de
 # 190 sec (pour 50591) # 3 min-ish
 # 1630 sec pour 54174 noms d'espèces
-tictoc::tic()
+tictoc::tic("Extraction de la taxonomie GBIF")
+# Utilisation version 3.9.0
 df_matches <- rgbif::name_backbone_checklist(
-  listes_especes_api_gbif,
+  name_data = listes_especes_api_gbif,
   verbose = TRUE # Montre les alternatifs
 )
 tictoc::toc()
 
-
+# Exporter les données de GBIF pour ne pas les perdre
 writexl::write_xlsx(
   x = df_matches,
   path = file.path(
@@ -768,28 +842,69 @@ writexl::write_xlsx(
     "liste_esp_GBIF_match_API.xlsx"
   )
 )
-# Exploration des noms -------------
 
-# Extraction des noms d'espèces seulement
+# Importer et Explorer les noms d'espèces -------------
+df_matches <- readxl::read_xlsx(
+  path = file.path(
+    out_liste,
+    "liste_esp_GBIF_match_API.xlsx"
+  )
+)
+colnames(df_matches) |>
+  grep(pattern = "Key", value = TRUE)
+
+df_matches |> count(rank)
+hist(df_matches$confidence)
+
+
+# Extraire les noms d'espèces seulement
+# avec une forte condiance et
+# enlever les duplicats
 df_matches_simple <- df_matches |>
   dplyr::filter(
+    # Si le speciesKey est NA, c'est que ce le niveau espèce n'est pas atteint
+    !is.na(speciesKey),
+    # filtre selon la confiance pour retirer ce qui est vraiment pas précis
+    # comme nom. à 50%, il y avait beaucoup de faux positifs
+    confidence >= 80,
     # Retirer les noms alternatifs
-    !is_alternative,
-    rank == "SPECIES"
+    # !is_alternative,
+    rank %in% c("FROM", "SPECIES", "SUBSPECIES", "SUBVARIETY", "VARIETY")
   ) |>
   dplyr::mutate(
     # Vérification que les noms canoniques sont les mêmes que les noms verbatim
-    check = canonicalName == verbatim_name
-  )
-
-# Vérification des noms différents de la taxonomie de GBIF
+    check_canonName_verbatimName = canonicalName == verbatim_name
+  ) |>
+  dplyr::group_by(speciesKey) |>
+  # si le nombre est plus que 1 dans le groupe, c'est un duplicat
+  dplyr::mutate(is_duplicate = n() > 1) |>
+  # 1. Arrange by priorities within each speciesKey group
+  dplyr::arrange(
+    # Priority 1: Rows where BOTH are TRUE come first (descending puts TRUE before FALSE)
+    dplyr::desc(is_duplicate & check_canonName_verbatimName),
+    # Priority 2: If none match Priority 1, sort by highest confidence
+    dplyr::desc(confidence),
+    .by_group = TRUE
+  ) |>
+  # 2. Pick the top row for each speciesKey
+  dplyr::slice(1) |>
+  dplyr::mutate(is_duplicate_2 = n() > 1) |>
+  dplyr::ungroup()
+# S'il n'y a aucun duplicat, devrait tout être FALSE
+df_matches_simple |> dplyr::count(is_duplicate_2)
+nrow(df_matches)
+nrow(df_matches_simple)
+# Vérification des noms différents entre la taxonomie de GBIF (canonicalName)
+# et les noms des listes du Québec (verbatim_name)
 df_matches_simple |>
   dplyr::select(
+    usageKey,
     canonicalName,
     verbatim_name,
-    check
+    confidence,
+    check_canonName_verbatimName
   ) |>
-  dplyr::filter(!check)
+  dplyr::filter(!check_canonName_verbatimName)
 
 # Voir les types de rangs
 df_matches_simple |>
@@ -800,53 +915,52 @@ df_matches_simple |>
 setdiff((listes_especes_api_gbif$id), (df_matches$verbatim_id)) # Données originales
 setdiff((listes_especes_api_gbif$id), (df_matches_simple$verbatim_id)) # Après filtres...
 
-# combiner avec données GBIF
-#
+
+###################################################
+# Combiner les données des noms FRANÇAIS avec données d'espèces de GBIF
+# L'important ici est d'avoir le speciesKey qui permet de résoudre différents
+# synonymes, même avec la taxonomie de GBIF. En effet, GBIF contient des
+# tableaux de données qui ont potentiellement des noms d'espèces synonymes.
 especes_sauvage_canada_noms_communs_gbif <- liste_esp_joint |> # liste_esp_complete |>
   # Ajout des noms GBIF
   dplyr::left_join(
     df_matches_simple,
-    by = dplyr::join_by(nom_scientifique == verbatim_name)
-  ) |>
-  # séparation colonnes de wild species et les informations ajoutés pour les
-  # listes d'espèces
-  tidyr::separate(
-    groupe_taxonomique,
-    into = c("Type_EN", "Type_FR"),
-    sep = " - "
-  ) |>
-  # Extraire ce qui se trouve entre \"TEXTE\"
-  dplyr::mutate(
-    desc_fr = stringr::str_extract(
-      string = fr_justification_fr,
-      # Match tout ".*" ce qui se retrouve entre " et "
-      pattern = "(?<=\").*(?=\")"
+    # La jointure doit se faire avec les nom scientifiques pour ajouter
+    # les informations de GBIF
+    by = dplyr::join_by(
+      nom_scientifique == verbatim_name
     )
-    # rank = dplyr::coalesce(rank.x, rank.y)
-  ) #|>
-# Retirer les colonnes coalesce
-# dplyr::select(
-#   -c(rank.x, rank.y)
-# )
-
+  )
 names(especes_sauvage_canada_noms_communs_gbif)
 head(especes_sauvage_canada_noms_communs_gbif)
 
 
 # Exportationdes noms extraient de rgbif
-write.csv(
+# Exportation en parquet
+# 10x plus compressé que CSV et plus de 3x plus compressé que XSLX.
+arrow::write_parquet(
   x = especes_sauvage_canada_noms_communs_gbif,
-  row.names = FALSE,
-  file = file.path(
-    "output",
-    "esp_noms_gbif_maj.csv"
-  )
+  sink = file.path(
+    out_liste,
+    "esp_noms_gbif_maj.parquet"
+  ),
+  compression = "zstd",
+  compression_level = 9
 )
 
-writexl::write_xlsx(
-  x = especes_sauvage_canada_noms_communs_gbif,
-  path = file.path(
-    out_liste,
-    "esp_noms_gbif_maj.xlsx"
-  )
-)
+# write.csv(
+#   x = especes_sauvage_canada_noms_communs_gbif,
+#   row.names = FALSE,
+#   file = file.path(
+#     out_liste,
+#     "esp_noms_gbif_maj.csv"
+#   )
+# )
+
+# writexl::write_xlsx(
+#   x = especes_sauvage_canada_noms_communs_gbif,
+#   path = file.path(
+#     out_liste,
+#     "esp_noms_gbif_maj.xlsx"
+#   )
+# )

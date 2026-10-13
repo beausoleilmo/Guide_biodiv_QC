@@ -1,26 +1,29 @@
 ---
 params:
   num_cols: 3
-bibliography: ../ref/bibib.bib
+bibliography: ../../ref/bibib.bib
 title: "Guide de la Biodiversité par Région"
 output: 
   html_document:
     self_contained: true
     includes:
-      in_header: ../header.html
+      in_header: ../../header.html
     # include-in-header: ../meta-header.html
     toc: true
     toc_float: true
-    toc_extend: false
 editor_options: 
   chunk_output_type: console
 ---
 
-Le guide de la biodiversité du Québec utilise les données GBIF -@gbif_general et iNaturalist -@inaturalist_general (photos et liens). 
+Le guide de la biodiversité du Québec utilise les données GBIF -@gbif_general 
+et iNaturalist -@inaturalist_general (photos et liens). 
 
-Ce projet a été créé dans le cadre d'analyse pédagogique de la biodiversité (voir article de blogue [Évologie](https://evologie.netlify.app/posts/guide_biodiv_qc/2025_05_24_guide_biodiv_qc/guide_biodiv_qc_1)).
+Ce projet a été créé dans le cadre d'analyse pédagogique de la biodiversité 
+(voir article de blogue 
+[Évologie](https://evologie.netlify.app/posts/guide_biodiv_qc/2025_05_24_guide_biodiv_qc/guide_biodiv_qc_1)).
 
-Consultez plus d'information sur chaque espèce en cliquant sur les photos pour rejoindre un page iNaturalist. 
+Consultez plus d'information sur chaque espèce en cliquant sur les photos 
+pour rejoindre un page iNaturalist. 
 
 <!-- Retirer l'espace blanc  -->
 
@@ -37,41 +40,30 @@ library(tidyverse)
 library(knitr)
 library(ggplot2)
 library(sf)
+library(htmltools)
+library(magick)
 ```
 
 ```{r data_in, echo=FALSE, message=FALSE, warning=FALSE}
-# Noms combinés pour renommer ces classes
-act = "Amphibiens - couleuvres - tortues"
 
-level_path = ".."
 
-# manual_input = FALSE 
-# if (manual_input) {
-#    level_path = "."
-# }
-# base_path =  file.path(
-#   level_path, 
-#   "../evologie/InCubateur/2025_05_24_Guide_biodiv_qc/output/partie_2")
-  # img_csv_file = file.path(
-  #   level_path,
-  #   "data/path_imgs.csv")
-
+# Chemin d'accès à PARTIR (relatif) DU .QMD
 base_path = file.path(
-path.expand("~/Desktop/incubateur_blogue"), 
-"2025_05_24_Guide_biodiv_qc/output/partie_2"
+"../../output"
 )
 img_csv_file = file.path(
     "../data/path_imgs.csv")
 
-
-
-# Données de noms d'espèces en français 
+# Données de noms d'espèces en français de iNaturalist
+# mais manuellement modifiées pour avoir des noms du Québec le plus possible
 sp_nm_fr_mod = read.csv(
   file = file.path(base_path, 
                    "sp_nm_df_MOD.csv")) |> 
   dplyr::select(species, nom_commun_qc) |> 
   dplyr::distinct()
 
+# Fichier de sélection d'espèces répartie selon un niveau taxonomique 
+# Données de 7.selection_especes_region.R
 select_sp_tout_reg = read.csv2(file = file.path(
   base_path,
   "select_sp_tout_reg.csv"
@@ -81,6 +73,7 @@ if(file.exists(img_csv_file)) {
   dat_all = read.csv2(file = img_csv_file)
 }
 
+# Données iNaturalist (ID, nom français ET lien vers images des espèces)
 sp_list_fil_all <- read.csv2(
   file = file.path(base_path,
                    "sp_list_fil_all.csv")) |> 
@@ -88,7 +81,8 @@ sp_list_fil_all <- read.csv2(
   # Enlever duplciats 
   dplyr::distinct(species, fr_nm, .keep_all = TRUE) |> 
   # Duplicat (Océanite cul blanc)
-  filter(default_photo_medium_url != "https://www.inaturalist.org/taxa/1289621") |> 
+  filter(
+    default_photo_medium_url != "https://www.inaturalist.org/taxa/1289621") |> 
   # Ajouter les noms français 
   left_join(
     y = sp_nm_fr_mod ,
@@ -97,29 +91,30 @@ sp_list_fil_all <- read.csv2(
   )
 ```
 
-```{r diagnostic_stop, echo=FALSE, message=FALSE, warning=FALSE}
-# stop("CURRENT WORKING DIRECTORY IS: ", getwd())
-```
 
 ```{r prep_data, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Noms combinés pour renommer ces classes
+act = "Amphibiens - couleuvres - tortues"
 count_sp_information = select_sp_tout_reg |> 
+  # Contient fichier_photo
   left_join(
-    y = sp_list_fil_all,
+    y = sp_list_fil_all  |>  select(-Type_FR),
     by = join_by(species),
     relationship ="many-to-many"
   ) |> 
   # Remplacer des noms pour l'affichage 
   mutate(
     reformat_taxo = case_when(
-      class == "Amphibia" ~ act,
-      class == "Squamata" ~ act,
-      class == "Testudines" ~ act,
-      class == "Mammalia" ~ "Mammifères",
       kingdom == "Fungi" ~ "Champignons",
       kingdom == "Plantae" ~ "Plantes",
-      Type_FR == "Poissons" ~ "Poissons",
-      phylum == "Arthropoda" ~ "Bobittes",
+      phylum == "Arthropoda" ~ "Arthropodes (Bibittes)",
+      class == "Amphibia" ~ act,
       class == "Aves" ~ "Oiseaux",
+      order == "Squamata" ~ act,
+      order == "Testudines" ~ act,
+      class == "Mammalia" ~ "Mammifères",
+      Type_FR == "Poissons" ~ "Poissons",
       .default = class
     ),
     # l'Orignal avait 2 noms différents, mais pas nécessaire 
@@ -145,22 +140,22 @@ count_sp_information = select_sp_tout_reg |>
   ungroup() |> 
   mutate(
     fichier_photo = path.expand(file.path(
-      # level_path,
-      "..",
-          "../evologie/", 
+      "../..",
           gsub(
-            pattern = "main_page_image", replacement = "main_page_image2", x = fichier_photo)
+            pattern = "main_page_image", 
+            replacement = "main_page_image2", x = fichier_photo)
         ))
   ) 
 
 downscale = FALSE
 if (downscale) {
 # Downscale your images to thumbnails first
-library(magick)
  count_sp_information = count_sp_information |> 
-   mutate(img_src = sub(pattern = "\\.\\./", replacement = "", fichier_photo))
+   dplyr::mutate(
+       img_src = sub(pattern = "\\.\\./", replacement = "", fichier_photo))
 
-img_src = count_sp_information |> distinct(img_src) |> pull(img_src)
+
+ img_src = count_sp_information |> dplyr::distinct(img_src) |> dplyr::pull(img_src)
 # Example logic to apply to your image list if they are too big:
 dat_all = NULL
 
@@ -170,18 +165,18 @@ for (photos_i in 1:length(img_src)) {
   if(grepl(pattern = "evologie//NA", x = img_src[photos_i])) {next}
   if(grepl(pattern = "\\.\\./NA", x = img_src[photos_i])) {next}
   # Lire l'image
-  img <- image_read( img_src[photos_i])
+  img <- magick::image_read( img_src[photos_i])
   # Établir l'échelle 
-  img_resized <- image_scale(img, "x200") # scale to 200px height
+  img_resized <- magick::image_scale(img, "x200") # scale to 200px height
   # Sortie
   out = file.path("../img/photos", basename(img_src[photos_i]))
   # Écriture et diminution de la qualité 
-  image_write(image = img_resized, path = out, quality = 50)
+  magick::image_write(image = img_resized, path = out, quality = 50)
   link_update = data.frame(
     link = img_src[photos_i], 
     outlink = out)
   # Combine les données 
-  dat_all = bind_rows(dat_all, link_update)
+  dat_all = dplyr::bind_rows(dat_all, link_update)
 }
 
 write.csv2(
@@ -192,40 +187,37 @@ write.csv2(
 
 
 # Assume que la jointure se fait avec les 
-count_sp_link = count_sp_information |>
-  mutate(fichier_photo = basename(fichier_photo)) |> 
-  left_join(
-    y = dat_all |> mutate(link = basename(link)), 
-    by = join_by(fichier_photo == link)
-  ) |> 
-    mutate(
-  # ../ pour que le lien soit OK pout le .qmd
-      fichier_photo = path.expand(file.path(
-           level_path,
-          outlink
-        ))) |> 
-          filter(!is.na(id))
+count_sp_link = count_sp_information #|>
+  # mutate(fichier_photo = basename(fichier_photo)) |> 
+  # left_join(
+  #   y = dat_all |> mutate(link = basename(link)), 
+  #   by = join_by(fichier_photo == link)
+  # ) |> 
+  #   mutate(
+  # # ../ pour que le lien soit OK pout le .qmd
+  #     fichier_photo = path.expand(file.path(
+  #         outlink
+  #       ))) |> 
+          # filter(!is.na(id))
 
 # Lire les régions 
-regqc = st_read(
-  dsn = file.path(
-    "../..",
-    "evologie/posts/guide_biodiv_qc/2025_05_24_Guide_biodiv_qc/data/partie_1/admin_geo/admin_reg_qc",
-    "mrc_s.gpkg"), 
-  quiet = TRUE) |> 
+ regqc = duckspatial::ddbs_open_dataset(file.path(
+    "../../data/mod",
+    "munic_s.parquet")
+        ) |> sf::st_as_sf() |> 
   # Carte plus simple et rapide à dessiner 
-  st_simplify(dTolerance = 1e3)
+ sf::st_simplify(dTolerance = 1e3)
 
 runion_raw = regqc |> 
-  group_by(MRS_NM_REG, MRS_CO_REG) |> 
-  summarise(geom = st_union(geom)) |> 
+  group_by(MUS_NM_REG, MUS_CO_REG) |> 
+  summarise(geom = st_union(geometry)) |> 
   mutate(
     # MRS_CO_REG = gsub("\\b0(\\d)", "\\1", as.numeric(MRS_CO_REG))|> as.character(), 
-    code_reg  = paste(MRS_CO_REG, MRS_NM_REG, sep = " ")
+    code_reg  = paste(MUS_CO_REG, MUS_NM_REG, sep = " ")
   )
 
 region_noms = tibble::tribble(
-  ~MRS_CO_REG,                     ~MRS_NM_REG, ~MRS_NM_REG_short,
+  ~MUS_CO_REG,                     ~MUS_NM_REG, ~MUS_NM_REG_short,
   "01",             "Bas-Saint-Laurent", "Bas-St-Laurent",
   "02",       "Saguenay–Lac-Saint-Jean", "Saguenay–LSJ",
   "03",            "Capitale-Nationale", "C.-Nationale",
@@ -245,20 +237,20 @@ region_noms = tibble::tribble(
   "17",              "Centre-du-Québec", "Centre-Qc"
 ) |> mutate(
   # MRS_CO_REG = gsub("\\b0(\\d)", "\\1", as.numeric(MRS_CO_REG)) |> as.character(), 
-  code_reg_small  = paste(MRS_CO_REG, MRS_NM_REG_short, sep = " ")
+  code_reg_small  = paste(MUS_CO_REG, MUS_NM_REG_short, sep = " ")
 )
 
 
 runion = runion_raw |> 
   left_join(
     y = region_noms, 
-    by = join_by(MRS_CO_REG, MRS_NM_REG)
+    by = join_by(MUS_CO_REG, MUS_NM_REG)
   )
 
 sp_list_fil_all_taxo = count_sp_link |> 
   left_join(
     y = runion |> sf::st_drop_geometry(), 
-    by = join_by(MUS_NM_REG == MRS_NM_REG)
+    by = join_by(MUS_NM_REG == MUS_NM_REG)
   ) |> 
   # On doit retirer tous les URL == NA et donc pas de photo 
   filter(!is.na(default_photo_medium_url), 
@@ -273,7 +265,6 @@ sp_list_fil_all_taxo = count_sp_link |>
 
   # Compte nombre de manquant : à ajouter les photos...
 # count_sp_link |> filter(fichier_photo == "../NA") |> group_by(species) |> count()
-
 ```
 
 ## Carte du Québec
@@ -300,7 +291,7 @@ carte_qc = runion |>
     min.segment.length = 0.5,
     label.size = 0,
     fill = scales::alpha("white", .5),
-    aes(label = MRS_CO_REG, 
+    aes(label = MUS_CO_REG, 
         geometry = geom), 
     stat = "sf_coordinates") +  
   coord_sf(crs = 32198)+
@@ -332,7 +323,7 @@ knitr::raw_html('
 <details class="taxa-accordion" id="map-to-move">
   <summary class="class-summary">Carte du Québec</summary>
   <div class="accordion-content" style="text-align: center;">
-    <img src="../img/carte_qc2.png" alt="Carte du Québec" style="max-width: 100%; height: auto; border-radius: 6px;" />
+    <img src="../../img/carte_qc2.png" alt="Carte du Québec" style="max-width: 100%; height: auto; border-radius: 6px;" />
   </div>
 </details>
 ')
@@ -367,7 +358,10 @@ font-size: 12px;
 # Espèces uniques avec images
 unique_species <- sp_list_fil_all_taxo |> 
   distinct(id, fichier_photo) |> 
-  filter(!is.na(fichier_photo) & fichier_photo != "" & fichier_photo != "../NA")
+  filter(
+         !is.na(fichier_photo) & 
+           fichier_photo != "" & 
+           fichier_photo != "../NA")
 
 cat('<style>\n:root {\n')
 
@@ -380,7 +374,8 @@ for (i in 1:nrow(unique_species)) {
 
 
   # Mettre en variable global dans le CSS 
-  cat(sprintf('  --img-sp-%s: url("data:image/jpeg;base64,%s");\n', row$id, base64_string))
+  cat(sprintf('  --img-sp-%s: url("data:image/jpeg;base64,%s");\n', 
+              row$id, base64_string))
 
 }
 
@@ -392,7 +387,6 @@ cat('}\n</style>\n')
 
 
 ```{r run_script, results='asis', echo=FALSE}
-library(htmltools)
 
 # CSS snippet with Dark Mode Support
 cat('
@@ -478,7 +472,7 @@ for (c_idx in seq_along(target_classes)) {
   current_class <- target_classes[c_idx]
   
   class_data_global <- sp_list_fil_all_taxo |> 
-    filter(reformat_taxo == current_class)
+    dplyr::filter(reformat_taxo == current_class)
   
   if (nrow(class_data_global) == 0) {
     next
@@ -492,8 +486,8 @@ for (c_idx in seq_along(target_classes)) {
     current_region <- regions[r_idx]
     
     region_data <- class_data_global |> 
-      filter(code_reg_small == current_region) |> 
-      arrange(desc(n))
+      dplyr::filter(code_reg_small == current_region) |> 
+      dplyr::arrange(desc(n))
     
     if (nrow(region_data) > 0) {
       reg_title <- gsub("\\b0(\\d)", "\\1", current_region)
@@ -501,7 +495,7 @@ for (c_idx in seq_along(target_classes)) {
       # Unique identifiers for HTML tabs
       tab_id <- sprintf("tab-%s-%s", c_idx, r_idx)
       
-      Build Cards
+      # Build Cards
       cards <- lapply(seq_len(nrow(region_data)), function(i) {
         row <- region_data[i, ]
         img_url <- if (is.na(row$default_photo_medium_url) || row$default_photo_medium_url == "") {
@@ -562,7 +556,7 @@ for (c_idx in seq_along(target_classes)) {
 }
 
 # Safely print HTML without Pandoc errors
-knitr::raw_html(as.character(tagList(accordion_list)))
+knitr::raw_html(as.character(htmltools::tagList(accordion_list)))
 ```
 
 
@@ -583,9 +577,9 @@ knitr::raw_html(as.character(tagList(accordion_list)))
 
 ```{r photolic, echo=FALSE, results='asis'}
 sp_list_fil_all_taxo |> 
-  distinct(default_photo_attribution_name) |> 
+  dplyr::distinct(default_photo_attribution_name) |> 
   na.omit() |> 
-  pull() |> 
+  dplyr::pull() |> 
   gsub(pattern = ", some rights reserved|, uploaded by.*$|, all rights reserved|no rights reserved|CC |\n|\\*\\*", 
        replacement = "") |> 
   # gsub(pattern = "\\(c\\)", replacement = "\u00A9") |> 

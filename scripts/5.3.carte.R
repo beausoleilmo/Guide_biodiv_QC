@@ -11,6 +11,8 @@
 #       en gardant toutes les données du Québec pour mettre en contexte la carte
 #   -->
 
+message("Production et exportation de cartes ")
+
 # Liste d'espèces avec Type_FR
 # source("Incubateur/2025_05_24_Guide_biodiv_qc/scripts/partie_2/0.1_charge_donnees_sp_nm.R")
 
@@ -23,6 +25,8 @@ TYPE_FCT_LIST <- gbif_somme_query |>
 REGION_SEL_LIST <- unique(regqc$MUS_NM_REG)
 MRC_SEL_LIST <- unique(regqc$MUS_NM_MRC)
 # gbif_somme_query |> distinct(MUS_NM_REG) |> pull(MUS_NM_REG)
+
+# Noms de reformat_taxo
 target_classes <- c(
   "Amphibiens",
   "Couleuvres",
@@ -35,8 +39,11 @@ target_classes <- c(
   "Oiseaux"
 )
 
-message("Nb observation par h3_parent (mémoire)")
-tictoc::tic() # 25 s
+message(
+  "Exécution de gbif_somme_query : 
+Nb observation par h3_parent (mémoire)"
+)
+tictoc::tic() # 65 s
 # NB observations par h3_parent des données GBIF (par kingdom et Type_FR)
 gb_compte <- gbif_somme_query |>
   # Garde uniquement les niveaux taxonomiques désirés
@@ -54,6 +61,8 @@ tictoc::toc()
 
 # Nombre de type (utiliser pour la cartographie et choix de couleurs)
 nb_type <- length(unique(gb_compte$reformat_taxo))
+# Doit être true, sinon, les target_calsses ne sont pas tous dans les données
+nb_type == length(target_classes)
 
 message("Union région admin")
 # union des régions administratives en pleine qualité  (limites régionales)
@@ -83,6 +92,17 @@ reg_sel_spatial <- regqc |>
   st_simplify(dTolerance = 1e2)
 
 # Filtre les points eBirds pour la région sélectionnée
+# Ajouter les municipalités aux points chauds de eBird
+ebird_hp_sf_admin <- ebird_hp_sf |>
+  sf::st_intersection(
+    y = regqc |>
+      dplyr::select(
+        "MUS_NM_MUN",
+        "MUS_NM_MRC",
+        "MUS_NM_REG"
+      )
+  )
+
 ebird_hp_sf_reg <- ebird_hp_sf_admin |>
   st_filter(reg_sel_spatial)
 
@@ -284,7 +304,7 @@ gg_carte_sommaire_obs <- cropped_gb_compte |>
     ylim = c(bbox_crs["ymin"], bbox_crs["ymax"]),
     expand = TRUE # Zoom avec espace autour
   )
-gg_carte_sommaire_obs
+print(gg_carte_sommaire_obs)
 
 ggsave(
   filename = file.path(
@@ -304,7 +324,7 @@ ggsave(
 
 ## ____________####
 ## Carte interactive --------
-
+message("Carte interactive (long à calculer)")
 # Filtrer un groupe d'organismes
 gb_h3pol_oi <- cropped_gb_compte |>
   filter(Type_FR == "Oiseaux")

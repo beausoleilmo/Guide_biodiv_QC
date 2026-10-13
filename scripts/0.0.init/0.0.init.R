@@ -42,7 +42,8 @@ libs_v <- c(
   "dbplyr", # Traduction du code dplyr en requêtes SQL
   "tidyr", # Nettoyage et restructuration des données (format long/large)
   # Carto
-  "sf", # Simple feature
+  "sf", # Simple feature : données spatiales
+  "terra", # Données spatiales matricielles
   "h3jsr", # Grille H3
   "mapview", # Cartes interactives
   "lwgeom", # Préparation de polygon pour filtre GBIF
@@ -50,28 +51,37 @@ libs_v <- c(
   "ggplot2", # Graphiques
   "treemap", # Graphiques pour compte des espèces
   "plotly", # Diagrammes interactifs
+  "tidyterra", # Graphiques ggplot avec raster
+  "scales", # Pour les 'échelles' de ggplot
   # Utilitaires
+  "readxl", # Lire des fichiers Excel (SVP à éviter...)
+  "writexl", # Exporter un Excel...
+  "readr", # Lire des données dans R
   "stringr", # Manipulation de chaînes de caractères
   "glue", # Interpolation de chaînes de caractères ("coller" des variables)
   "tictoc", # Minuteur
   "docstring", # Création de documentation directement dans les fonctions R
   "purrr", # Programmation fonctionnelle et manipulation de listes/vecteurs
+  "janitor", # pour nettoryer les noms de colonnes
+  "tibble", # Tables dans R
   # biodiversité
-  "rinat",
+  "rgbif", # Intéragir avec GBIF (API)
   "rebird",
+  "rcol", # Connection avec le catalogue of life (COL)
+  "taxize", # Taxonomie https://www.r-bloggers.com/2011/11/use-case-combining-taxize-and-rgbif/
+  "rinat", # Intéragir avec iNaturalist (API)
   # Lecture données et gestion fichiers
   "duckdb", # Lire fichiers données volumineux
   "duckspatial", # Lire des données spatiales et manipulations facilement
   "arrow", # lire des .parquet en data.frame
   "sfarrow", # Lire des geoparquets
   "DBI", # Gestion des connexions BD
-  "rgbif", # Intéragir avec GBIF (API)
-  "rinat", # Intéragir avec iNaturalist (API)
   "jsonlite", # Gestion du format JSON
   "zip", # Décompresser des fichiers
+  "xml2", # manipualtion xml
+  "rvest", # moissonnage
   "httr2" # Envoi de requêtes HTTP et interactions avec des API Web
 )
-
 # Install au besoin
 missing_libs <- libs_v[!(libs_v %in% installed.packages()[, "Package"])]
 if (length(missing_libs) > 0) {
@@ -95,48 +105,9 @@ suppressWarnings(
 message("Charge : CRS projet")
 projetCRS <- 32198
 
-# message("Charge les fonctions")
+message("Charge les fonctions")
 
-# Préparation environnement duckdb
-# source(
-#   file = file.path(
-#     incub,
-#     "scripts/0.init",
-#     "db_connection_fun.R")
-# )
-
-# Fonction pour lire les données
-# source(
-#   file = file.path(
-#     incub,
-#     "scripts/0.init",
-#     "transforme_gbif_parquet.R")
-# )
-
-# Fonction pour joindre les données ADMIN et H3 au parquet
-# source(
-#   file = file.path(
-#     incub,
-#     "scripts/0.init",
-#     "GBIF_jointure_admin_h3.R")
-# )
-
-# Fonction pour algorithme pour proportion de choix d'espèces
-# source(
-#   file = file.path(
-#     incub,
-#     "scripts/0.init",
-#     "more_prec_decay.R")
-# )
-
-# Toutes les fonctions du projet
-# source(
-#   file = file.path(
-#     "~/Github_proj/evologie",
-#     "posts/guide_biodiv_qc/2025_05_24_Guide_biodiv_qc",
-#     "scripts/00_init",
-#     "functions.R"
-#   )
-# )
+# Fonction pour trouver l'extension des images iNaturalist
+source("scripts/0.0.init/fonctions.R")
 
 message("Fait!")
