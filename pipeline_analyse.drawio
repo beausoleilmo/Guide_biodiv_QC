@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="-2uNH3fpLBFnpR-2-aea">
-    <mxGraphModel dx="3413" dy="2573" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2085" dy="1810" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -48,6 +48,9 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="TI70ZHXocTm5arBs2xKE-56" edge="1" parent="1" source="y9438prm-UOEO7Eu9yKx-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="TI70ZHXocTm5arBs2xKE-55">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sWTFyH3Y99DdFEFj0qT4-11" edge="1" parent="1" source="y9438prm-UOEO7Eu9yKx-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="sWTFyH3Y99DdFEFj0qT4-10">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="y9438prm-UOEO7Eu9yKx-18" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;" value="Données GBIF prêt pour analyses" vertex="1">
@@ -385,6 +388,9 @@
         </mxCell>
         <mxCell id="sWTFyH3Y99DdFEFj0qT4-8" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;fillColor=#60a917;fontColor=#ffffff;strokeColor=#2D7600;" value="API iNaturalist Téléchargement des photos" vertex="1">
           <mxGeometry height="100" width="105" x="730" y="1640" as="geometry" />
+        </mxCell>
+        <mxCell id="sWTFyH3Y99DdFEFj0qT4-10" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Carte d&#39;observations de la biodiversité du Québec" vertex="1">
+          <mxGeometry height="120" width="130" x="545" y="960" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
