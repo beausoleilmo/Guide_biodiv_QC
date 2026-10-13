@@ -103,7 +103,7 @@
         <mxCell id="y9438prm-UOEO7Eu9yKx-35" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Aggrégation spatiale des données (compte nombre obsevations par espéce)" vertex="1">
           <mxGeometry height="151" width="168.5" x="317.12" y="1100" as="geometry" />
         </mxCell>
-        <mxCell id="y9438prm-UOEO7Eu9yKx-41" edge="1" parent="1" source="sWTFyH3Y99DdFEFj0qT4-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="y9438prm-UOEO7Eu9yKx-40">
+        <mxCell id="y9438prm-UOEO7Eu9yKx-41" edge="1" parent="1" source="sWTFyH3Y99DdFEFj0qT4-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="y9438prm-UOEO7Eu9yKx-40">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="y9438prm-UOEO7Eu9yKx-37" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;fillColor=#60a917;fontColor=#ffffff;strokeColor=#2D7600;" value="API iNaturalist ID espèces et liens des photos" vertex="1">
@@ -118,13 +118,13 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="y9438prm-UOEO7Eu9yKx-40" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Réduire taille photos" vertex="1">
-          <mxGeometry height="100" width="105" x="770" y="1570" as="geometry" />
+          <mxGeometry height="100" width="105" x="873" y="1690" as="geometry" />
         </mxCell>
         <mxCell id="TI70ZHXocTm5arBs2xKE-54" edge="1" parent="1" source="y9438prm-UOEO7Eu9yKx-42" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="TI70ZHXocTm5arBs2xKE-53">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="y9438prm-UOEO7Eu9yKx-42" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Formatter le guide" vertex="1">
-          <mxGeometry height="100" width="105" x="697" y="1690" as="geometry" />
+          <mxGeometry height="100" width="105" x="800" y="1810" as="geometry" />
         </mxCell>
         <mxCell id="TI70ZHXocTm5arBs2xKE-2" edge="1" parent="1" source="y9438prm-UOEO7Eu9yKx-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="TI70ZHXocTm5arBs2xKE-1" value="">
           <mxGeometry relative="1" as="geometry">
@@ -264,7 +264,7 @@
           <mxGeometry height="80" width="80" x="-50" y="10" as="geometry" />
         </mxCell>
         <mxCell id="TI70ZHXocTm5arBs2xKE-53" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Publication statique &amp;nbsp;sur Github page&amp;nbsp;" vertex="1">
-          <mxGeometry height="100" width="105" x="780" y="1790" as="geometry" />
+          <mxGeometry height="100" width="105" x="883" y="1910" as="geometry" />
         </mxCell>
         <mxCell id="TI70ZHXocTm5arBs2xKE-55" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="Treemaps par groupe d&#39;espèces" vertex="1">
           <mxGeometry height="100" width="120" x="180" y="1180" as="geometry" />
@@ -376,6 +376,15 @@
         </mxCell>
         <mxCell id="sWTFyH3Y99DdFEFj0qT4-6" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;fillColor=#60a917;fontColor=#ffffff;strokeColor=#2D7600;" value="API iNaturalist noms communs" vertex="1">
           <mxGeometry height="100" width="105" x="617" y="1570" as="geometry" />
+        </mxCell>
+        <mxCell id="sWTFyH3Y99DdFEFj0qT4-9" edge="1" parent="1" source="sWTFyH3Y99DdFEFj0qT4-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="sWTFyH3Y99DdFEFj0qT4-8" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="722" y="1620" as="sourcePoint" />
+            <mxPoint x="873" y="1740" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sWTFyH3Y99DdFEFj0qT4-8" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;fillColor=#60a917;fontColor=#ffffff;strokeColor=#2D7600;" value="API iNaturalist Téléchargement des photos" vertex="1">
+          <mxGeometry height="100" width="105" x="730" y="1640" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
