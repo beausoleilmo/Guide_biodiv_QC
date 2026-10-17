@@ -155,6 +155,5 @@ system2(
     "output/images/main_page_image2/"
   )
 )
-# 99.guide
-# Aller dans projet Github "Guide_biodiv_Qc"
-# --> https://github.com/beausoleilmo/Guide_biodiv_QC
+# 99.guide : Exécuter le script qui bâtit le guide
+source(file = file.path("./scripts/99.guide/control.R"))

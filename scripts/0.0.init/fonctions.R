@@ -12,8 +12,14 @@
 #' les occurrences les plus fréquences.
 #'
 #' @param donnees data.frame. Tableau de données à filtrer pour un groupe
-#' d'organismes
-#' @param nb_min_esp Integer. Nombre d'espèce cible final pour chaque région
+#' d'organismes. Doit contenir les colonnes `taxon_lvl_gr` pour appliquer
+#' le filtre du paramètre `taxo_lvl`, la colonne du paramètre `region_lvl`
+#' (comme `MUS_NM_REG`), et une colonne `pa` qui note la présence (1) de
+#' l'espèce.
+#' @param nb_max_esp Integer. Nombre d'espèce cible final pour chaque région.
+#' l'objectif est d'avoir autour de ce nombre d'espèces à la fin du filtre.
+#' De cette manière, le nombre d'espèces peut être réduit pour être présenté
+#' dans le guide de biodiversité.
 #' @param type Modèle de la fonctoin [more_prec()] c("m1", "m2", "m3",)
 #' @param taxo_lvl Nom de colonne du niveau taxonomique à
 #' grouper (`group_by()`). Nécessaire pour certain groupe taxonomique : grouper
@@ -21,17 +27,23 @@
 #' de famille avec 1 espèce dedans.
 #'
 #' @returns
+#' liste avec
+#'  - select_sp_table (tableau avec espèces filtrées),
+#'  - iter_rec (nombre d'espèces après chaque itération de filtre) : utile
+#'  pour diagnostiquer le nombre d'espèces restantes.
+#'
 #' @export
 #'
 #' @examples
 #'
 especes_proportion_famille <- function(
   donnees,
-  nb_min_esp,
+  nb_max_esp,
   type = "m1",
   taxo_lvl = "family",
   region_lvl = "MUS_NM_REG",
-  maxiter = 100
+  maxiter = 100,
+  verbose = 10
 ) {
   message(sprintf("Niveau taxonomique : %s", taxo_lvl))
   # Pour enregistrer le processus itératif
@@ -39,6 +51,7 @@ especes_proportion_famille <- function(
 
   w <- 1 # Compte pour la boucle while
 
+  # Tableau avec chaque région et proportion = 1.
   # Au début, chaque région a une proportion de 100% = 1
   # Cette proportion sera ajusté en fonction d'un algorithme
   # de Décroissance exponentielle
@@ -47,20 +60,28 @@ especes_proportion_famille <- function(
     # Débute avec proportion == 1 (votre chat peut tout prendre...)
     dplyr::mutate(prop = 1)
 
+  # Validation si atteinte de l'objectif
   if (w == maxiter) {
     message("Itération maximale atteinte")
   }
+
+  # Filtre itératif (selon proportion)
   # Boucle pour filtrer de plus en plus finement les données
   # afin d'avoir un nombre d'oiseaux par région
   while (w != maxiter) {
-    # Continuer la sélection pour les oiseaux seulement
-    select_sp_Aves <- donnees |>
+    # Continuer la sélection pour un tableau contenant
+    # certains type d'organismes
+
+    select_sp_table <- donnees |>
+      # Aouter aux données la proportion pour chaque organisme
       dplyr::left_join(
         y = reg_prop,
         by = dplyr::join_by(!!rlang::sym(region_lvl))
       ) |>
+      # Filtrer pour un niveau taxonomique
       dplyr::mutate(taxon_lvl_gr = {{ taxo_lvl }}) |>
-      # Garder un nombre d'espèce par niveau taxonomique : famille
+      # Garder un nombre d'espèce par niveau taxonomique : selon taxon_lvl_gr
+      # pour une région donnée
       dplyr::group_by(!!rlang::sym(region_lvl), taxon_lvl_gr) |>
       # Garde les données si c'est le top "top_proportion" ou minimum 1
       dplyr::filter(
@@ -76,19 +97,25 @@ especes_proportion_famille <- function(
         ) <=
           base::pmax(1, dplyr::n() * prop)
       ) |>
+      # Organiser les données en ordre de compte
       dplyr::arrange(dplyr::desc(n))
 
-    # Compte, par région, le nb d'espèces restant après filtration
-    aves_count <- select_sp_Aves |>
+    # Compte, par région, le *nombre d'espèces restant* après filtration
+    aves_count <- select_sp_table |>
       dplyr::group_by(!!rlang::sym(region_lvl)) |>
       dplyr::summarise(sum = sum(pa))
 
     # enregistrer le processus de filtration
     if (w == 1) {
-      # Si c'est 1re itération
+      # Si c'est 1re itération, prend l'information AVEC les noms de régions
       iter_rec <- iter_rec |>
-        dplyr::bind_cols(aves_count)
+        # Contient region_lvl ET sum
+        dplyr::bind_cols(aves_count) |>
+        # Renommer la colonne pour l'itération 1
+        dplyr::rename(sum_1 = sum)
     } else {
+      # Enregistre les itérations subséquentes en changeant le nom
+      # de la colonne avec l'indice d'iteration
       iter_rec <- iter_rec |>
         dplyr::bind_cols(
           aves_count |>
@@ -99,11 +126,11 @@ especes_proportion_famille <- function(
               tidyselect::everything()
             )
         )
-    }
+    } # Fin if else
 
     # Informe sur la précision actuelle selon le compteur 'w'
     # Extraire pour la valeur 'm1' = 1/x ou x^(-1).
-    if (w %% 10 == 0) {
+    if (w %% verbose == 0) {
       message(
         sprintf(
           fmt = "Précision (%s) : %s/1000",
@@ -113,18 +140,22 @@ especes_proportion_famille <- function(
             more_prec(w)[[type]],
             4
           ) *
-            1000
+            1000 # pour que le chiffre ne soit pas trop petit à afficher
         )
       )
-    }
+    } # Fin if
     ## VALIDATION --
+    ## Liste du nom des région qui doivent être mis à jour.
     # Doit tester si certaines régions ont atteint leur objectif suite :
     # Extraire région qui n'ont pas atteint le nombre d'espèces espéré
     reg_to_update <- aves_count |>
-      # touver les régions qui ont plus de 'nb_min_esp' (Booléen)
-      dplyr::mutate(prop_update = sum >= nb_min_esp) |>
+      # touver les régions qui ont plus de 'nb_max_esp' (Booléen)
+      # Si TRUE, la somme du nombre d'espèces est plus grand ou égal
+      # au seuil définit dans le paramètre `nb_max_esp`, va garde la region
+      dplyr::mutate(prop_update = sum >= nb_max_esp) |>
       # Filtrer les régions qui ont trop d'espèces
       dplyr::filter(prop_update) |>
+      # Extraire le nom des régions qu'on doit mettre à jour.
       dplyr::pull(!!rlang::sym(region_lvl))
 
     # S'il reste rien, quitter la boucle
@@ -134,24 +165,33 @@ especes_proportion_famille <- function(
 
     # print(reg_prop)
 
+    # MAJ du table de proportion pour les régions qui ne remplissent pas
+    # le critère de sélection `nb_max_esp`
     # Mettre à jour le tableau de proportion avec la décroissance exponentielle
     reg_prop <- reg_prop |>
       dplyr::mutate(
         prop = ifelse(
+          # Si le nom de la région est dans le vecteur de nom de région
+          # `reg_to_update`, il faut CHANGER la proportion d'espèces
+          # à garder.
           test = !!rlang::sym(region_lvl) %in% reg_to_update,
           # Remplacer la proportion initiale
           # Diminution de la précision à chaque coup
           # pour filtrer plus précisément
           yes = prop - more_prec(w)[[type]],
+          # Sinon, garder la proportion identique.
           no = prop
         )
       )
 
     # Augmente le compteur de 1
     w <- w + 1
-  }
+  } # Fin while
 
-  return(list(select_sp_Aves, iter_rec))
+  return(list(
+    table_especes_filtre = select_sp_table,
+    table_nb_especes_iteractions = iter_rec
+  ))
 }
 
 

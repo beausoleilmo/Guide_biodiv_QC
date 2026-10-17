@@ -2,28 +2,27 @@
 params:
   num_cols: 3
 bibliography: ../../ref/bibib.bib
-title: "Guide de la Biodiversité par Région"
+title: "GBRQ"
 output: 
   html_document:
     self_contained: true
     includes:
       in_header: ../../header.html
     # include-in-header: ../meta-header.html
-    toc: true
-    toc_float: true
+    toc: false
+    toc_float: false
 editor_options: 
   chunk_output_type: console
 ---
 
-Le guide de la biodiversité du Québec utilise les données GBIF -@gbif_general 
-et iNaturalist -@inaturalist_general (photos et liens). 
+Le Guide de la Biodiversité par Région du Québec (GBRQ) doit son existance 
+à l'effort de collecte de données rapportées par les citoyens, scientifiques,
+gouvernements, musées ou tous les publicateurs de données sur 
+[GBIF](https://www.gbif.org) -@gbif_general.  
 
-Ce projet a été créé dans le cadre d'analyse pédagogique de la biodiversité 
-(voir article de blogue 
-[Évologie](https://evologie.netlify.app/posts/guide_biodiv_qc/2025_05_24_guide_biodiv_qc/guide_biodiv_qc_1)).
 
-Consultez plus d'information sur chaque espèce en cliquant sur les photos 
-pour rejoindre un page iNaturalist. 
+Cliquez sur la photo d'une espèce pour obtenir plus d'information sur inaturalist. 
+
 
 <!-- Retirer l'espace blanc  -->
 
@@ -560,10 +559,58 @@ knitr::raw_html(as.character(htmltools::tagList(accordion_list)))
 ```
 
 
+
+## Fabrication du guide
+
+```{=html}
+<details class="taxa-accordion" id="methodologie-guide" markdown="1">
+  <summary class="class-summary">Méthodologie du guide</summary>
+  <div class="accordion-content" style="text-align: left;" markdown="1">
+```
+
+Le guide est construit avec les données de biodiversités provenants de 
+GBIF @gbif_general et les photos puis les liens vers les espèces sont de 
+iNaturalist @inaturalist_general (photos et liens). 
+
+Les noms français des espèces proviennent de diverse listes 
+[@wild_species_canada_2020; @Bryoquel_liste; @lfvq_2021; @lichen_quebec; @Liste_oiseaux_quebec; @mycolytes_data; @vascan_gbif].
+
+
+La sélection des espèces est fait par groupe taxonomique (famille ou ordre). 
+Un nombre d'espèces maximal est déterminé pour chaque groupe d'organismes. 
+Pour chaque groupe d'organismes (niveau taxonomique; nombre maximal d'espèces),
+les espèces sont réparies selon un niveau taxonomique : 
+oiseaux (famille; 140), plantes (ordre; 80), arthropodes (ordre; 80), 
+poissons (famille; 100) et champignons (famille; 100).
+
+
+
+```{=html}
+  </div>
+</details>
+```
+
 ## Références
+
+
+```{=html}
+<details class="taxa-accordion" id="references-guide" markdown="1">
+  <summary class="class-summary">Bibliographie et sources</summary>
+  <div class="accordion-content" style="text-align: left;" markdown="1">
+```
+
+Ce projet a été créé dans le cadre d'analyse pédagogique de la biodiversité 
+(voir article de blogue 
+[Évologie](https://evologie.netlify.app/posts/guide_biodiv_qc/2025_05_24_guide_biodiv_qc/guide_biodiv_qc_1)).
 
 ::: {#refs}
 :::
+
+
+```{=html}
+  </div>
+</details>
+```
 
 
 ### Photo attributions

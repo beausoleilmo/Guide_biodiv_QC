@@ -132,8 +132,7 @@ Lecture de : %s",
   sp_deja_fait <- sp_nom_exist |>
     dplyr::pull(nom_sp)
   # Filtrer les noms d'espèces
-  # Script origin (select_sp_tout_reg) :
-  # --> 7.selection_especes_region.R
+  # --> 7.selection_especes_region.R (select_sp_tout_reg) :
   sp_list <- select_sp_tout_reg |>
     # Retire les espèces dupliquées (puisque même espèce peut se
     # retrouver dans différentes régions)

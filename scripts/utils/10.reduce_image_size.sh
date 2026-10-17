@@ -90,6 +90,6 @@ echo "==> Réduction de la taille des images dans '$TARGET_PATH'..."
 # Use find with -exec to safely handle spaces in paths
 # Resize images to max width 200px maintaining aspect ratio
 find "$TARGET_PATH" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) \
-  -exec magick mogrify -resize 200 {} +
+  -exec magick mogrify -resize 200 -quality 75 -strip {} +
 
 echo "==> Copie et réduction de la taille terminée."

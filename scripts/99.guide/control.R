@@ -14,11 +14,6 @@ library(dplyr)
 # Change entre 3 et 7 colonnes
 column_count <- 6
 
-# params = list(
-#     num_cols = column_count
-#   )
-# 11 s
-
 # S'assurer que pandoc est disponible (doit être TRUE)
 rmarkdown::pandoc_available()
 

@@ -29,11 +29,6 @@
 #   )
 
 message("Requiert internet pour API GBIF")
-# Minimum d'observations
-# qui doivent être fait pour être inclue
-# Cela aide à éviter d'avoir trop d'observations erronées
-min_obs <- 10
-
 count_sp_reg |>
 
   count(kingdom, phylum)
@@ -50,6 +45,13 @@ count_sp_reg |>
       ),
   ) |>
   count(class)
+
+
+# Minimum d'observations
+# qui doivent être fait pour être inclue
+# Cela aide à éviter d'avoir trop d'observations erronées
+min_obs <- 10
+
 # Extraire compte observations (avec minimum) pour
 # les organismes qui ne sont pas des oiseaux
 select_sp_noAves <- count_sp_reg |>
@@ -104,12 +106,14 @@ select_sp_pouessons <- count_sp_reg |>
 nrow(select_sp_pouessons)
 #
 # Recherche taxonomique poissons
+tictoc::tic("match poissons") # 10 s
 df_matches <- rgbif::name_backbone_checklist(
   select_sp_pouessons |>
     dplyr::select(scientificName, kingdom, family) |>
     distinct(),
   verbose = TRUE # Montre les alternatifs
 )
+tictoc::toc()
 
 select_sp_pouessons <- select_sp_pouessons |>
   # Ajouter les données taxonomique de GBIF
@@ -146,63 +150,73 @@ select_sp_plantes <- count_sp_reg |>
   )
 
 
-# Préfiltre
-nb_min_obs <- min_obs_aves <- 100 # Minimum d'observations nécessaire pour gader une espèce
-nb_min_esp <- nb_esp_niveau <- 140 # Nombre d'espèce cible à garder
-
 message(
   "\nSélection programatique des espèces avec groupe taxonomique:
 "
 )
+
+region_lvl <- "MUS_NM_REG"
+# Préfiltre
+nb_min_obs <- min_obs_aves <- 100 # Minimum d'observations nécessaire pour gader une espèce
+
 select_sp_Aves <- especes_proportion_famille(
+  # Sélectionne un nombre D'OBSERVATION minimale pour les oiseaux pour
+  # être considérer dans le calcul
   donnees = count_sp_reg |> filter(class == "Aves", n > nb_min_obs),
-  nb_min_esp = 140,
+  nb_max_esp = 140,
   taxo_lvl = "family",
-  type = "m1"
-)[[1]]
+  type = "m1",
+  region_lvl = region_lvl,
+  maxiter = 100
+)
 
 select_sp_plantes_filt <- especes_proportion_famille(
   donnees = select_sp_plantes,
-  nb_min_esp = 80,
+  nb_max_esp = 80,
   taxo_lvl = "order",
-  type = "m1"
-)[[1]]
+  type = "m1",
+  region_lvl = region_lvl,
+  maxiter = 100
+)
 
 select_sp_arthrop_filt <- especes_proportion_famille(
   donnees = select_sp_arthrop,
-  nb_min_esp = 80,
+  nb_max_esp = 80,
   taxo_lvl = "order",
   type = "m1",
+  region_lvl = region_lvl,
   maxiter = 200
-)[[1]]
+)
 select_sp_pouessons_filt <- especes_proportion_famille(
   donnees = select_sp_pouessons,
-  nb_min_esp = 100,
+  nb_max_esp = 100,
   type = "m1",
+  region_lvl = region_lvl,
   maxiter = 200
-)[[1]]
+)
 select_sp_fungi_filt <- especes_proportion_famille(
   donnees = select_sp_fungi,
-  nb_min_esp = 100,
+  nb_max_esp = 100,
   type = "m1",
+  region_lvl = region_lvl,
   maxiter = 200
-)[[1]]
+)
 # matplot(t(select_sp_arthrop_filt[[2]][,-c(1), drop = FALSE]));abline(h = 140)
 
-select_sp_Aves
+select_sp_Aves$table_especes_filtre
 
 # Treemaps ----------------------------------------------------------------
 
 message("Treemaps pour une région en particulier")
 # Extraire région
-reg_lst <- unique(select_sp_Aves$MUS_NM_REG)
+reg_lst <- unique(select_sp_Aves$table_especes_filtre$MUS_NM_REG)
 
 # 5 == estrie
 (reg_sel <- reg_lst[5])
 message(sprintf("Sélection de la région %s", reg_sel))
 
 treemap(
-  dtf = select_sp_Aves |>
+  dtf = select_sp_Aves$table_especes_filtre |>
     filter(MUS_NM_REG %in% reg_sel),
   index = c(
     "order",
@@ -215,7 +229,7 @@ treemap(
 )
 
 treemap(
-  dtf = select_sp_arthrop_filt |>
+  dtf = select_sp_arthrop_filt$table_especes_filtre |>
     filter(MUS_NM_REG %in% reg_sel),
   index = c(
     "order",
@@ -277,11 +291,11 @@ message(
   "Combiner les tables d'espèces sélectionnées selon niveau taxonomique"
 )
 select_sp_tout_reg <- select_sp_noAves |>
-  bind_rows(select_sp_Aves) |>
-  bind_rows(select_sp_fungi_filt) |>
-  bind_rows(select_sp_plantes_filt) |>
-  bind_rows(select_sp_arthrop_filt) |>
-  bind_rows(select_sp_pouessons_filt) |>
+  bind_rows(select_sp_Aves$table_especes_filtre) |>
+  bind_rows(select_sp_fungi_filt$table_especes_filtre) |>
+  bind_rows(select_sp_plantes_filt$table_especes_filtre) |>
+  bind_rows(select_sp_arthrop_filt$table_especes_filtre) |>
+  bind_rows(select_sp_pouessons_filt$table_especes_filtre) |>
   mutate(
     total = rowSums(across(where(is.numeric)), na.rm = TRUE),
     # treemap ne fonctionne pas s'il y a des NA dans 'order'
@@ -314,7 +328,8 @@ select_sp_tout_reg <- select_sp_noAves |>
     )
   )
 
-# Exploration des groupes d'organismes
+# Exploration : compte des espèces par groupe d'organismes par région
+# Donne le NOMBRE d'ESPÈCE PAR RÉGION ET GROUPE D'ORGANISME
 select_sp_tout_reg |>
   group_by(
     MUS_NM_REG,
