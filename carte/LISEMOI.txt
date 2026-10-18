@@ -1,0 +1,24 @@
+Les cartes QGIS ont été faites avec Geometry Generator. Il est nécessaire que les couches aient le même CRS. 
+
+Les couches : 
+- Points pour positionner les étiquettes
+- polygones des MRCs (qu'on applique comme symbologie le 'Geometry Generator' sous forme de Linestring.)
+- La même couche de MRC mais avec les couleurs des polygones en symbologie
+- munic union pour le contour du Québec. 
+- Enelver l'arrière plan de la carte dans le 'Page Layout'
+
+
+```
+if(
+    attributes(get_feature('position', 'nom', "code_reg_small"))['dessine_ligne'] = 1,
+    
+    -- If true, draw the line:
+    make_line(
+    centroid($geometry), 
+    geometry(get_feature('position', 'nom', "code_reg_small"))
+),
+    
+    -- If false, return nothing:
+    NULL
+)
+```

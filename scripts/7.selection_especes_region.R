@@ -172,7 +172,7 @@ select_sp_Aves <- especes_proportion_famille(
 
 select_sp_plantes_filt <- especes_proportion_famille(
   donnees = select_sp_plantes,
-  nb_max_esp = 80,
+  nb_max_esp = 100,
   taxo_lvl = "order",
   type = "m1",
   region_lvl = region_lvl,
@@ -181,7 +181,7 @@ select_sp_plantes_filt <- especes_proportion_famille(
 
 select_sp_arthrop_filt <- especes_proportion_famille(
   donnees = select_sp_arthrop,
-  nb_max_esp = 80,
+  nb_max_esp = 100,
   taxo_lvl = "order",
   type = "m1",
   region_lvl = region_lvl,

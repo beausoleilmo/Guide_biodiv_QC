@@ -87,7 +87,13 @@ sp_nm_list_fexist <- sp_nm_list |>
       false = out_down_file
     )
   ) |>
-  filter(!file_exist, !is.na(fichier_photo))
+  filter(
+    !file_exist,
+    !is.na(fichier_photo),
+    # Retirer les lignes qui n'ont pas d'extension (si on les as déjà
+    # correctement téléchargés et pris en compte l'extension)
+    !(extension %in% "")
+  )
 
 nrow(sp_nm_list)
 nrow(sp_nm_list_fexist)

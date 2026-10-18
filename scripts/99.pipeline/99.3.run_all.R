@@ -91,12 +91,6 @@ source(
   )
 )
 
-# message("--> Compte d'espèce totales")
-# source(
-#   file = file.path(
-#     incub, "scripts/7.selection_especes.R"
-#   ))
-
 # message("--> Extraire le nom des espèces GBIF")
 # À partir des listes d'espèces de différentes sources
 # Extraire les noms franâis et exporter en parquet
@@ -131,29 +125,13 @@ source(
 # 9 pour télécharger les nouvelles photos
 # source(file.path("scripts/9.Photos_iNaturalist.R"))
 
-# utils/10.reduce_image_size.sh pour réduire la taille des images.
-# Rendre le script exécutable
-system2(
-  command = "chmod",
-  args = c("+x", normalizePath("scripts/utils/10.reduce_image_size.sh"))
-)
+# utils/reduce_image_size.sh pour réduire la taille des images.
+message("Réduire la tailel des photos téléchargées de iNaturalist")
+source(file = file.path("./scripts/9.1.reduire_taille_photo.R"))
 
-# Afficher l'aide et description de la fonction
-system2(
-  command = "bash",
-  args = c(
-    "scripts/utils/10.reduce_image_size.sh",
-    "--help"
-  )
-)
-# Exécution de la réduction de la taille des photos
-system2(
-  command = "bash",
-  args = c(
-    "scripts/utils/10.reduce_image_size.sh",
-    "output/images/main_page_image",
-    "output/images/main_page_image2/"
-  )
-)
+
 # 99.guide : Exécuter le script qui bâtit le guide
+message("Création du guide HTML avec sélection d'espèces et photos iNaturalsit")
 source(file = file.path("./scripts/99.guide/control.R"))
+
+# Les modifications du guide se font directement dans `guide_regs.qmd`

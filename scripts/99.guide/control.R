@@ -2,10 +2,13 @@ library(rmarkdown)
 library(dplyr)
 
 # ! Note !
-# Le nombre d'observation par espèce n'est pas le même que iNat et est dans certain cas
-# beaucoup plus bas. C'est à cause des filtres et en particulier celui
-# des incertitudes au niveau des coordonnées. De plus, les données iNaturalist peuvent compter
-# les observations qui ne sont PAS de "qualité recherche" et donc ne pas se retrouver dans GBIF.
+# Le nombre d'observation par espèce n'est pas le même que iNat et
+# est dans certain cas beaucoup plus bas.
+# C'est à cause des filtres et en particulier celui
+# des incertitudes au niveau des coordonnées.
+# De plus, les données iNaturalist peuvent compter
+# les observations qui ne sont PAS de "qualité recherche" et donc ne
+# pas se retrouver dans GBIF.
 # Les données exposées ici sont SEULEMENT celles de GBIF.
 
 # Note QMD

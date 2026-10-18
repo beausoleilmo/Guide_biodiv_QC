@@ -16,9 +16,9 @@ editor_options:
 ---
 
 Le Guide de la Biodiversité par Région du Québec (GBRQ) doit son existance 
-à l'effort de collecte de données rapportées par les citoyens, scientifiques,
-gouvernements, musées ou tous les publicateurs de données sur 
-[GBIF](https://www.gbif.org) -@gbif_general.  
+à l'effort de collecte de données rapportées par les citoyens, scientifiques, 
+musées et autres publicateurs de données sur 
+[GBIF](https://www.gbif.org/fr) -@gbif_general.  
 
 
 Cliquez sur la photo d'une espèce pour obtenir plus d'information sur inaturalist. 
@@ -199,52 +199,6 @@ count_sp_link = count_sp_information #|>
   #       ))) |> 
           # filter(!is.na(id))
 
-# Lire les régions 
- regqc = duckspatial::ddbs_open_dataset(file.path(
-    "../../data/mod",
-    "munic_s.parquet")
-        ) |> sf::st_as_sf() |> 
-  # Carte plus simple et rapide à dessiner 
- sf::st_simplify(dTolerance = 1e3)
-
-runion_raw = regqc |> 
-  group_by(MUS_NM_REG, MUS_CO_REG) |> 
-  summarise(geom = st_union(geometry)) |> 
-  mutate(
-    # MRS_CO_REG = gsub("\\b0(\\d)", "\\1", as.numeric(MRS_CO_REG))|> as.character(), 
-    code_reg  = paste(MUS_CO_REG, MUS_NM_REG, sep = " ")
-  )
-
-region_noms = tibble::tribble(
-  ~MUS_CO_REG,                     ~MUS_NM_REG, ~MUS_NM_REG_short,
-  "01",             "Bas-Saint-Laurent", "Bas-St-Laurent",
-  "02",       "Saguenay–Lac-Saint-Jean", "Saguenay–LSJ",
-  "03",            "Capitale-Nationale", "C.-Nationale",
-  "04",                      "Mauricie", "Mauricie",
-  "05",                        "Estrie", "Estrie",
-  "06",                      "Montréal", "Montréal",
-  "07",                     "Outaouais", "Outaouais",
-  "08",         "Abitibi-Témiscamingue", "Abitibi-T",
-  "09",                     "Côte-Nord", "Côte-N.",
-  "10",                "Nord-du-Québec", "Nord-Qc",
-  "11", "Gaspésie–Îles-de-la-Madeleine", "Gaspésie–ÎDLM",
-  "12",          "Chaudière-Appalaches", "Chaudière-A.",
-  "13",                         "Laval", "Laval",
-  "14",                    "Lanaudière", "Lanaudière",
-  "15",                   "Laurentides", "Laurentides",
-  "16",                    "Montérégie", "Montérégie",
-  "17",              "Centre-du-Québec", "Centre-Qc"
-) |> mutate(
-  # MRS_CO_REG = gsub("\\b0(\\d)", "\\1", as.numeric(MRS_CO_REG)) |> as.character(), 
-  code_reg_small  = paste(MUS_CO_REG, MUS_NM_REG_short, sep = " ")
-)
-
-
-runion = runion_raw |> 
-  left_join(
-    y = region_noms, 
-    by = join_by(MUS_CO_REG, MUS_NM_REG)
-  )
 
 sp_list_fil_all_taxo = count_sp_link |> 
   left_join(
@@ -254,6 +208,7 @@ sp_list_fil_all_taxo = count_sp_link |>
   # On doit retirer tous les URL == NA et donc pas de photo 
   filter(!is.na(default_photo_medium_url), 
   # Retire toutes les photos qui sont NA 
+# TODO : vérifier pourquoi??
   # (À VÉRIFIER POURQUOI) -> blamer les poissons
   # (À VÉRIFIER POURQUOI)
   # (À VÉRIFIER POURQUOI)
@@ -266,63 +221,13 @@ sp_list_fil_all_taxo = count_sp_link |>
 # count_sp_link |> filter(fichier_photo == "../NA") |> group_by(species) |> count()
 ```
 
-## Carte du Québec
-
-```{r maps, echo=FALSE, warning=FALSE, message=FALSE, fig.width=7, fig.height=5, out.width="70%", fig.dpi=192}
-# Faire la carte 
-carte_qc = runion |> 
-  ggplot() +
-  geom_sf(
-    linewidth = 3,
-    colour = "white"
-  ) +  
-  geom_sf(
-    # show.legend = FALSE,
-    mapping = aes(
-      fill = code_reg_small, 
-      colour = code_reg_small
-    )
-  ) +  
-  ggrepel::geom_label_repel(
-    max.overlaps = Inf, 
-    segment.square  = FALSE,
-    segment.inflect = TRUE,
-    min.segment.length = 0.5,
-    label.size = 0,
-    fill = scales::alpha("white", .5),
-    aes(label = MUS_CO_REG, 
-        geometry = geom), 
-    stat = "sf_coordinates") +  
-  coord_sf(crs = 32198)+
-  scale_fill_viridis_d(name = "Région") + 
-  scale_colour_viridis_d(name = "Région") + 
-  # guides(fill = guide_legend(ncol = 2)) +
-  theme_void()+
-  theme(
-    legend.text = element_text(size = 8),
-    panel.background = element_blank(),
-    plot.background = element_blank(),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    legend.background = element_rect(fill = alpha("white", 0.5), color = alpha("white", 0.25), linewidth = 0.25)
-    )
-
-  # carte_qc
-# ggsave(plot = carte_qc, filename = "../img/carte_qc.png", width = 7, height = 5)
-# ggsave(
-#   plot = carte_qc, 
-#   filename = "img/carte_qc2.png", 
-#   width = 7, 
-#   height = 5
-#   )
-```
 
 ```{r Carte_qc, echo=FALSE}
 knitr::raw_html('
 <details class="taxa-accordion" id="map-to-move">
   <summary class="class-summary">Carte du Québec</summary>
   <div class="accordion-content" style="text-align: center;">
-    <img src="../../img/carte_qc2.png" alt="Carte du Québec" style="max-width: 100%; height: auto; border-radius: 6px;" />
+    <img src="../../img/carte_qc3.png" alt="Carte du Québec" style="max-width: 80%; height: auto; border-radius: 6px;" />
   </div>
 </details>
 ')
@@ -332,11 +237,11 @@ knitr::raw_html('
 # Définir les 'classes' taxonomiques reformattées à montrer
 # target_classes <- c("Amphibia", 
                     # "Squamata", "Testudines", "Mammalia", "Aves")
+# NOTE : doit correspondre avec les éléments de la colonne reformat_taxo.
 target_classes <- c(
   act,
   "Mammifères", "Oiseaux", 
-  "Champignons", "Plantes", "Bobittes"
-  , 
+  "Champignons", "Plantes", "Arthropodes (Bibittes)"  , 
   "Poissons"
   )
 regions <- sort(unique(sp_list_fil_all_taxo$code_reg_small))
@@ -560,13 +465,16 @@ knitr::raw_html(as.character(htmltools::tagList(accordion_list)))
 
 
 
-## Fabrication du guide
+## Détails méthodologiques et interprétation 
 
 ```{=html}
 <details class="taxa-accordion" id="methodologie-guide" markdown="1">
   <summary class="class-summary">Méthodologie du guide</summary>
   <div class="accordion-content" style="text-align: left;" markdown="1">
 ```
+
+
+**Données** 
 
 Le guide est construit avec les données de biodiversités provenants de 
 GBIF @gbif_general et les photos puis les liens vers les espèces sont de 
@@ -576,14 +484,52 @@ Les noms français des espèces proviennent de diverse listes
 [@wild_species_canada_2020; @Bryoquel_liste; @lfvq_2021; @lichen_quebec; @Liste_oiseaux_quebec; @mycolytes_data; @vascan_gbif].
 
 
+**Sélection des espèces**
+
 La sélection des espèces est fait par groupe taxonomique (famille ou ordre). 
 Un nombre d'espèces maximal est déterminé pour chaque groupe d'organismes. 
 Pour chaque groupe d'organismes (niveau taxonomique; nombre maximal d'espèces),
 les espèces sont réparies selon un niveau taxonomique : 
-oiseaux (famille; 140), plantes (ordre; 80), arthropodes (ordre; 80), 
+oiseaux (famille; 140), plantes (ordre; 100), arthropodes (ordre; 100), 
 poissons (famille; 100) et champignons (famille; 100).
 
 
+**Interprétation**
+
+Le guide se présente comme une lentille des espèces qui sont le plus *observé* 
+au Québec selon citoyens, scientifiques, institutions gouvernementales, 
+musées, académiques et autres publicateurs de données de biodiversité sur le 
+portail [GBIF](https://www.gbif.org/fr). 
+
+
+**Limites**
+
+Les données de biodiversités sont rapportées de manière hétérogène : des 
+expéditions scientifiques, des observations informelles ou accessoires, des 
+collections muséales, etc. Cette diversité de collecte de biodiversité est 
+une opportunité de mesurer l'état de la biodiversité au Québec, comme elle 
+est rapportée par *toutes* les personnes qui s'y intéressent. Ces « biais », 
+peuvent être aussi vu comme une opportunité de parler plus de biodiversité 
+et de faire des projets citoyens qui reconnecte à la nature. 
+
+En regardant les résultats du nombre d'observations par région, on peut 
+voir l'importance de certains jeux de données. 
+En particulier, certaines espèces comme le 
+monarque (*Danaus Plexipus*) et l'asclépiade (*Asclepias syriaca*) ont un 
+intérêt pour les citoyens par des campagnes de sensibilisations (voir le projet
+[Mission monarque](https://www.mission-monarch.org/fr))
+et des et sont donc rapportés plus fréquemment. D'autres projets se 
+concentrent sur les insectes (voir les différents 
+« [ Essaims ](https://insectesquebec.com/essaims) » dont 
+[Essaim des abeilles et aculéates (Cap sur les insectes)](https://www.inaturalist.org/projects/essaim-des-abeilles-et-aculeates-cap-sur-les-insectes)).
+Ainsi, certaines espèces qui deviennent plus rares ont une attention 
+particulière et des espèces communes sont surreprésentées dans les groupes de 
+recherche d'espèces générales. 
+
+Des expéditions scientifiques peuvent aussi rapporter beaucoup d'observations
+pour une espèce. C'est le cas de l'incroyable effort du Laboratoire 
+d'ornithologie marine de Rimouski (LOMR) et son programme de suivi 
+du fou de Bassan (*Morus bassanus*).
 
 ```{=html}
   </div>

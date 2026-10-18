@@ -61,7 +61,60 @@ duckspatial::ddbs_write_dataset(
     "munic_union_s.parquet"
   ),
   parquet_compression = "zstd",
-  options = list(COMPRESSION_LEVEL = 12),
+  options = list(compression_level = 12),
+  overwrite = TRUE
+)
+
+
+### Préparer carte des MRCs du Québec en parquet
+### Avant, c'était dans le guide directement
+region_noms <- tibble::tribble(
+  ~MUS_CO_REG , ~MUS_NM_REG                     , ~MUS_NM_REG_short ,
+  "01"        , "Bas-Saint-Laurent"             , "Bas-St-Laurent"  ,
+  "02"        , "Saguenay–Lac-Saint-Jean"       , "Saguenay–LSJ"    ,
+  "03"        , "Capitale-Nationale"            , "C.-Nationale"    ,
+  "04"        , "Mauricie"                      , "Mauricie"        ,
+  "05"        , "Estrie"                        , "Estrie"          ,
+  "06"        , "Montréal"                      , "Montréal"        ,
+  "07"        , "Outaouais"                     , "Outaouais"       ,
+  "08"        , "Abitibi-Témiscamingue"         , "Abitibi-T"       ,
+  "09"        , "Côte-Nord"                     , "Côte-N."         ,
+  "10"        , "Nord-du-Québec"                , "Nord-Qc"         ,
+  "11"        , "Gaspésie–Îles-de-la-Madeleine" , "Gaspésie–ÎDLM"   ,
+  "12"        , "Chaudière-Appalaches"          , "Chaudière-A."    ,
+  "13"        , "Laval"                         , "Laval"           ,
+  "14"        , "Lanaudière"                    , "Lanaudière"      ,
+  "15"        , "Laurentides"                   , "Laurentides"     ,
+  "16"        , "Montérégie"                    , "Montérégie"      ,
+  "17"        , "Centre-du-Québec"              , "Centre-Qc"
+) |>
+  mutate(
+    code_reg_small = paste(MUS_CO_REG, MUS_NM_REG_short, sep = " ")
+  )
+
+
+runion_raw <- muni |>
+  duckspatial::ddbs_transform(y = "EPSG:32198") |>
+  duckspatial::ddbs_union_agg(by = c("MUS_NM_REG", "MUS_CO_REG")) |>
+  dplyr::mutate(
+    code_reg = paste(MUS_CO_REG, MUS_NM_REG, sep = " ")
+  ) |>
+  left_join(
+    y = region_noms,
+    by = join_by(MUS_CO_REG, MUS_NM_REG),
+    # La table tribble doit être de la même source que ddbs
+    copy = "temp-table"
+  )
+
+
+duckspatial::ddbs_write_dataset(
+  data = runion_raw,
+  path = file.path(
+    "data/mod",
+    "mrc_union_s.parquet"
+  ),
+  parquet_compression = "zstd",
+  options = list(compression_level = 12),
   overwrite = TRUE
 )
 
