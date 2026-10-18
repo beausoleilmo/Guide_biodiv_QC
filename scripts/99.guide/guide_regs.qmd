@@ -199,8 +199,12 @@ count_sp_link = count_sp_information #|>
   #       ))) |> 
           # filter(!is.na(id))
 
-
+runion = arrow::read_parquet(file.path(
+    "../../data/mod",
+    "mrc_union_s.parquet"
+  ))
 sp_list_fil_all_taxo = count_sp_link |> 
+  # Pour avoir les nouveaux noms de régions 
   left_join(
     y = runion |> sf::st_drop_geometry(), 
     by = join_by(MUS_NM_REG == MUS_NM_REG)
