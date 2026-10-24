@@ -1,0 +1,98 @@
+---
+params:
+  region: "Montréal"
+  num_cols: 3
+title: '`r sprintf("Observation d’espèces pour la région %s", params$region)`'
+output: 
+  html_document:
+    self_contained: true
+  # pdf_document: default
+---
+
+```{r setup, echo=FALSE}
+library(tidyverse)
+library(knitr)
+
+# Assume sp_list_fil_all is already in your environment 
+# or loaded here:
+sp_list_fil_all <- read.csv2(
+  file = file.path(
+    "~/Github_proj/evologie/InCubateur/2025_05_24_Guide_biodiv_qc",
+    "output/partie_2/sp_list_fil_all.csv"))
+
+# 1. Filter by Region
+data_filtered <- sp_list_fil_all %>%
+  filter(MRS_NM_REG == params$region) %>%
+  arrange(class, desc(n))
+
+# 2. Define the classes we want to display
+target_classes <- c("Amphibia", "Squamata", "Testudines", "Mammalia", "Aves")
+
+```
+
+
+```{r run_script, results='asis', echo=FALSE}
+# Loop through each class to create sections and grids
+for (current_class in target_classes) {
+  
+  # Filter data for this specific section
+  class_data <- data_filtered |> 
+    filter(class == current_class)
+  
+  if (nrow(class_data) > 0) {
+    # Create Section Header
+    cat("\n##", current_class, "\n\n") # Niveau 1 
+    
+    # Get unique Orders in this class, sorted by the max 'n' found in each order
+    orders <- class_data %>% 
+      group_by(order) %>% 
+      summarise(max_n = max(n, na.rm = TRUE)) %>% 
+      arrange(desc(max_n)) %>% 
+      pull(order)
+    
+    for (current_order in orders) {
+      order_data <- class_data %>% filter(order == current_order)
+      cat("\n## Order:", current_order, "\n\n") # Subsection (Level 2)
+      
+      # Get unique Families in this order, sorted by max 'n'
+      families <- order_data %>% 
+        group_by(family) %>% 
+        summarise(max_n = max(n, na.rm = TRUE)) %>% 
+        arrange(desc(max_n)) %>% 
+        pull(family)
+      
+      for (current_family in families) {
+        family_data <- order_data %>% filter(family == current_family) %>% arrange(desc(n))
+        cat("\n### Family:", current_family, "\n\n") # Sub-subsection (Level 3)
+        
+        # Start the Grid for this Family
+        cat('<div style="display: grid; grid-template-columns: repeat(', params$num_cols, ', 1fr); gap: 20px; margin-bottom: 40px;">\n', sep="")
+        
+        for (i in 1:nrow(family_data)) {
+          row <- family_data[i, ]
+          img_path <- path.expand(row$fichier_photo)
+          
+          # HTML Block - NO leading indentation
+          cat(sprintf('<div style="text-align: center; margin-bottom: 20px;">
+<img src="%s" style="width: 100%%; border-radius: 8px;">
+<p>
+<strong>%s</strong><br>
+<em>%s</em> (%s)<br>
+<small>Observations: %s</small>
+</p>
+</div>',
+path.expand(file.path("~/Github_proj/evologie/", row$fichier_photo)), 
+row$fr_nm, 
+row$species, 
+row$name_comm, 
+row$n
+          ))
+        }
+        
+        cat('\n</div>\n') # End Family Grid
+      }
+    }
+    cat("\n--- \n") # Divider between Classes
+  }
+}
+```

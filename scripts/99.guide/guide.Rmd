@@ -1,0 +1,75 @@
+---
+params:
+  region: "Montréal"
+  num_cols: 3
+  data: '`r sp_list_fil_all <- read.csv2(file = file.path("~/Github_proj/evologie/InCubateur/2025_05_24_Guide_biodiv_qc","output/partie_2/sp_list_fil_all.csv"))`'
+title: '`r sprintf("Observation d’espèces pour la région %s", params$region)`'
+output: 
+  html_document:
+    self_contained: true
+  # pdf_document: default
+---
+
+Observations de la faune du Québec par l'effort de toute le monde! 
+
+```{r setup, echo=FALSE}
+library(tidyverse)
+library(knitr)
+
+# Filter by Region
+data_filtered <- sp_list_fil_all %>%
+  filter(MRS_NM_REG == params$region) %>%
+  arrange(class, desc(n))
+# Define the classes we want to display
+target_classes <- c("Amphibia", "Squamata", "Testudines", "Mammalia", "Aves")
+```
+
+
+```{r run_script, results='asis', echo=FALSE}
+# Loop through each class to create sections and grids
+for (current_class in target_classes) {
+  
+  # Filter data for this specific section
+  class_data <- data_filtered |> 
+    filter(class == current_class)
+  
+  if (nrow(class_data) > 0) {
+    # Create Section Header
+    cat("\n##", current_class, "\n\n")
+    
+    # Start the Grid (using HTML for layout control)
+    cat('<div style="display: grid; grid-template-columns: repeat(', 
+        params$num_cols, ', 1fr); gap: 20px;">')
+    
+    # Loop through species in this class
+    for (i in 1:nrow(class_data)) {
+      row <- class_data[i, ]
+      
+      # Generate the figure card
+      cat(sprintf(
+'<div style="text-align: center; margin-bottom: 20px;">
+<a href="%s" target="_blank">
+<img src="%s" style="width: 100%%; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer;" >
+</a>
+<p>
+<strong>%s</strong><br>
+<em>%s</em> (%s)<br>
+<small>Observations: %s</small>
+</p>
+</div>',
+# <img src="%s" style="width: 100%%; border-radius: 8px;">
+row$url,
+        path.expand(file.path("~/Github_proj/evologie/", row$fichier_photo)), 
+        row$fr_nm, 
+        row$species, 
+        row$name_comm, 
+        format(row$n, big.mark=" ")
+      ))
+    }
+    
+    cat('</div>\n\n') # End Grid
+    cat("--- \n")    # Section Divider
+  }
+}
+
+```

@@ -1,0 +1,625 @@
+---
+params:
+  num_cols: 3
+bibliography: ../../ref/bibib.bib
+title: "GBRQ"
+output: 
+  html_document:
+    self_contained: true
+    includes:
+      in_header: ../../header.html
+    # include-in-header: ../meta-header.html
+    toc: false
+    toc_float: false
+editor_options: 
+  chunk_output_type: console
+---
+
+Le Guide de la Biodiversité par Région du Québec (GBRQ) doit son existence 
+à l'effort de collecte de données rapportées par les citoyens, scientifiques, 
+musées et autres publicateurs de données sur 
+[GBIF](https://www.gbif.org/fr) -@gbif_general.  
+
+
+Cliquez sur la photo d'une espèce pour obtenir plus d'information 
+sur iNaturalist. 
+
+
+<!-- Retirer l'espace blanc  -->
+
+```{=html}
+<style>
+.tocify-extend-page {
+display: none !important;
+}
+</style>
+```
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(knitr)
+library(ggplot2)
+library(sf)
+library(htmltools)
+library(magick)
+```
+
+```{r data_in, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+# Chemin d'accès à PARTIR (relatif) DU .QMD
+base_path = file.path(
+"../../output"
+)
+img_csv_file = file.path(
+    "../data/path_imgs.csv")
+
+# Données de noms d'espèces en français de iNaturalist
+# mais manuellement modifiées pour avoir des noms du Québec le plus possible
+sp_nm_fr_mod = read.csv(
+  file = file.path(base_path, 
+                   "sp_nm_df_MOD.csv")) |> 
+  dplyr::select(species, nom_commun_qc) |> 
+  dplyr::distinct()
+
+# Fichier de sélection d'espèces répartie selon un niveau taxonomique 
+# Données de 7.selection_especes_region.R
+select_sp_tout_reg = read.csv2(file = file.path(
+  base_path,
+  "select_sp_tout_reg.csv"
+)) 
+
+if(file.exists(img_csv_file)) {
+  dat_all = read.csv2(file = img_csv_file)
+}
+
+# Données iNaturalist (ID, nom français ET lien vers images des espèces)
+sp_list_fil_all <- read.csv2(
+  file = file.path(base_path,
+                   "sp_list_fil_all.csv")) |> 
+  dplyr::select(-c(kingdom:family, nom_commun_qc)) |> 
+  # Enlever duplciats 
+  dplyr::distinct(species, fr_nm, .keep_all = TRUE) |> 
+  # Duplicat (Océanite cul blanc)
+  filter(
+    default_photo_medium_url != "https://www.inaturalist.org/taxa/1289621") |> 
+  # Ajouter les noms français 
+  left_join(
+    y = sp_nm_fr_mod ,
+    by = join_by(species),
+    relationship = "many-to-many"
+  )
+```
+
+
+```{r prep_data, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Noms combinés pour renommer ces classes
+act = "Amphibiens - couleuvres - tortues"
+count_sp_information = select_sp_tout_reg |> 
+  # Contient fichier_photo
+  left_join(
+    y = sp_list_fil_all  |>  select(-Type_FR),
+    by = join_by(species),
+    relationship ="many-to-many"
+  ) |> 
+  # Remplacer des noms pour l'affichage 
+  mutate(
+    reformat_taxo = case_when(
+      kingdom == "Fungi" ~ "Champignons",
+      kingdom == "Plantae" ~ "Plantes",
+      phylum == "Arthropoda" ~ "Arthropodes (Bibittes)",
+      class == "Amphibia" ~ act,
+      class == "Aves" ~ "Oiseaux",
+      order == "Squamata" ~ act,
+      order == "Testudines" ~ act,
+      class == "Mammalia" ~ "Mammifères",
+      Type_FR == "Poissons" ~ "Poissons",
+      .default = class
+    ),
+    # l'Orignal avait 2 noms différents, mais pas nécessaire 
+    # d'être aussi précis dans le guide. Combiner les 2 photos
+    # qui sont les mêmes de toute manière 
+    fichier_photo = gsub(
+      pattern = "Alces.americanus.jpg", 
+      replacement = "Alces.alces.jpg", 
+      x = fichier_photo
+    )
+  ) |> 
+  group_by(
+    species, 
+    id, # ID de l'espèce iNaturalist 
+    reformat_taxo, 
+    fichier_photo, 
+    default_photo_medium_url, 
+    default_photo_attribution, #photo_att, 
+    default_photo_attribution_name, # photo_att_nname, 
+    MUS_NM_REG,
+    nom_commun_qc) |> 
+  summarise(n = sum(n)) |> 
+  ungroup() |> 
+  mutate(
+    fichier_photo = path.expand(file.path(
+      "../..",
+          gsub(
+            pattern = "main_page_image", 
+            replacement = "main_page_image2", x = fichier_photo)
+        ))
+  ) 
+
+downscale = FALSE
+if (downscale) {
+# Downscale your images to thumbnails first
+ count_sp_information = count_sp_information |> 
+   dplyr::mutate(
+       img_src = sub(pattern = "\\.\\./", replacement = "", fichier_photo))
+
+
+ img_src = count_sp_information |> dplyr::distinct(img_src) |> dplyr::pull(img_src)
+# Example logic to apply to your image list if they are too big:
+dat_all = NULL
+
+for (photos_i in 1:length(img_src)) {
+  message(photos_i)
+  # Si la photo n'existe pas, passer au prochain
+  if(grepl(pattern = "evologie//NA", x = img_src[photos_i])) {next}
+  if(grepl(pattern = "\\.\\./NA", x = img_src[photos_i])) {next}
+  # Lire l'image
+  img <- magick::image_read( img_src[photos_i])
+  # Établir l'échelle 
+  img_resized <- magick::image_scale(img, "x200") # scale to 200px height
+  # Sortie
+  out = file.path("../img/photos", basename(img_src[photos_i]))
+  # Écriture et diminution de la qualité 
+  magick::image_write(image = img_resized, path = out, quality = 50)
+  link_update = data.frame(
+    link = img_src[photos_i], 
+    outlink = out)
+  # Combine les données 
+  dat_all = dplyr::bind_rows(dat_all, link_update)
+}
+
+write.csv2(
+  x = dat_all,
+  file = "data/path_imgs.csv", row.names = FALSE
+  )
+}
+
+
+# Assume que la jointure se fait avec les 
+count_sp_link = count_sp_information #|>
+  # mutate(fichier_photo = basename(fichier_photo)) |> 
+  # left_join(
+  #   y = dat_all |> mutate(link = basename(link)), 
+  #   by = join_by(fichier_photo == link)
+  # ) |> 
+  #   mutate(
+  # # ../ pour que le lien soit OK pout le .qmd
+  #     fichier_photo = path.expand(file.path(
+  #         outlink
+  #       ))) |> 
+          # filter(!is.na(id))
+
+runion = arrow::read_parquet(file.path(
+    "../../data/mod",
+    "mrc_union_s.parquet"
+  ))
+sp_list_fil_all_taxo = count_sp_link |> 
+  # Pour avoir les nouveaux noms de régions 
+  left_join(
+    y = runion |> sf::st_drop_geometry(), 
+    by = join_by(MUS_NM_REG == MUS_NM_REG)
+  ) |> 
+  # On doit retirer tous les URL == NA et donc pas de photo 
+  filter(!is.na(default_photo_medium_url), 
+  # Retire toutes les photos qui sont NA 
+# TODO : vérifier pourquoi??
+  # (À VÉRIFIER POURQUOI) -> blamer les poissons
+  # (À VÉRIFIER POURQUOI)
+  # (À VÉRIFIER POURQUOI)
+  # (À VÉRIFIER POURQUOI)
+  # (À VÉRIFIER POURQUOI)
+  fichier_photo != "../NA"
+  )
+
+  # Compte nombre de manquant : à ajouter les photos...
+# count_sp_link |> filter(fichier_photo == "../NA") |> group_by(species) |> count()
+```
+
+
+```{r Carte_qc, echo=FALSE}
+knitr::raw_html('
+<details class="taxa-accordion" id="map-to-move">
+  <summary class="class-summary">Carte du Québec</summary>
+  <div class="accordion-content" style="text-align: center;">
+    <img src="../../img/carte_qc3.png" alt="Carte du Québec" style="max-width: 100%; height: auto; border-radius: 6px;" />
+  </div>
+</details>
+')
+```
+
+```{r report_out, echo=FALSE}
+# Définir les 'classes' taxonomiques reformattées à montrer
+# target_classes <- c("Amphibia", 
+                    # "Squamata", "Testudines", "Mammalia", "Aves")
+# NOTE : doit correspondre avec les éléments de la colonne reformat_taxo.
+target_classes <- c(
+  act,
+  "Mammifères", "Oiseaux", 
+  "Champignons", "Plantes", "Arthropodes (Bibittes)"  , 
+  "Poissons"
+  )
+regions <- sort(unique(sp_list_fil_all_taxo$code_reg_small))
+```
+
+
+<style>
+.nav > li > a {
+position: relative;
+display: block;
+padding: 5px 5px;
+font-size: 12px;
+}
+</style>
+
+```{r generate_image_dictionary, results='asis', echo=FALSE}
+
+# Espèces uniques avec images
+unique_species <- sp_list_fil_all_taxo |> 
+  distinct(id, fichier_photo) |> 
+  filter(
+         !is.na(fichier_photo) & 
+           fichier_photo != "" & 
+           fichier_photo != "../NA")
+
+cat('<style>\n:root {\n')
+
+for (i in 1:nrow(unique_species)) {
+  row <- unique_species[i, ]
+  
+  # Fabriquer les caractères base64
+  # base64_string <- base64enc::base64encode(gsub(pattern = "\\.\\./", replacement = "", row$fichier_photo))
+  base64_string <- base64enc::base64encode(row$fichier_photo)
+
+
+  # Mettre en variable global dans le CSS 
+  cat(sprintf('  --img-sp-%s: url("data:image/jpeg;base64,%s");\n', 
+              row$id, base64_string))
+
+}
+
+cat('}\n</style>\n')
+```
+
+
+## Biodiversité
+
+
+```{r run_script, results='asis', echo=FALSE}
+
+# CSS snippet with Dark Mode Support
+cat('
+<style>
+  /* Base Grid & Card CSS */
+  .taxa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 15px; margin-top: 15px; }
+  .taxa-card { text-align: center; margin-bottom: 0px; border: 1px solid #eee; padding: 0px; border-radius: 8px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+  .taxa-img { width: 100%; height: 100px; min-width: 110px; min-height: 110px; object-fit: cover; border-radius: 6px; cursor: pointer; background-size: cover; background-position: center; background-repeat: no-repeat;}
+  .taxa-info { margin-top: 2px; line-height: 1.0; }
+  .taxa-title { font-size: 0.8em; font-weight: bold; color: #2c3e50; }
+  .taxa-obs { font-size: 0.80em; display: block; margin-top: 4px; margin-bottom: 4px; font-weight: bold; color: #2980b9; }
+
+  /* Class Accordion Styles */
+  details.taxa-accordion {
+    margin-bottom: 12px;
+    border: 1px solid #dcdfe6;
+    border-radius: 6px;
+    background-color: #ffffff;
+    overflow: hidden;
+  }
+  details.taxa-accordion summary.class-summary {
+    padding: 12px 16px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #2c3e50;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid transparent;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  details.taxa-accordion[open] summary.class-summary {
+    border-bottom-color: #dcdfe6;
+    background-color: #edf2f7;
+  }
+  .accordion-content {
+    padding: 12px;
+  }
+
+  /* ---------------------------------------------------- */
+  /* Dark Mode Overrides                                  */
+  /* ---------------------------------------------------- */
+  body.dark-mode details.taxa-accordion {
+    background-color: #1e1e1e !important;
+    border-color: #333333 !important;
+  }
+  body.dark-mode details.taxa-accordion summary.class-summary {
+    background-color: #262626 !important;
+    color: #e0e0e0 !important;
+  }
+  body.dark-mode details.taxa-accordion summary.class-summary:hover {
+    background-color: #303030 !important;
+  }
+  body.dark-mode details.taxa-accordion[open] summary.class-summary {
+    background-color: #2d3748 !important;
+    border-bottom-color: #333333 !important;
+    color: #ffffff !important;
+  }
+  
+  /* Dark Mode for inner Bootstrap Tabs */
+  body.dark-mode .nav-tabs {
+    border-bottom-color: #333 !important;
+  }
+  body.dark-mode .nav-tabs > li > a {
+    color: #aaa !important;
+    background-color: #1a1a1a !important;
+    border-color: #333 !important;
+  }
+  body.dark-mode .nav-tabs > li.active > a, 
+  body.dark-mode .nav-tabs > li.active > a:focus, 
+  body.dark-mode .nav-tabs > li.active > a:hover {
+    background-color: #2d3748 !important;
+    color: #fff !important;
+    border-color: #333 #333 transparent !important;
+  }
+</style>
+')
+
+# Outer list for class accordions
+accordion_list <- list()
+
+for (c_idx in seq_along(target_classes)) {
+  current_class <- target_classes[c_idx]
+  
+  class_data_global <- sp_list_fil_all_taxo |> 
+    dplyr::filter(reformat_taxo == current_class)
+  
+  if (nrow(class_data_global) == 0) {
+    next
+  }
+  
+  tab_headers <- list()
+  tab_contents <- list()
+  is_first <- TRUE
+  
+  for (r_idx in seq_along(regions)) {
+    current_region <- regions[r_idx]
+    
+    region_data <- class_data_global |> 
+      dplyr::filter(code_reg_small == current_region) |> 
+      dplyr::arrange(desc(n))
+    
+    if (nrow(region_data) > 0) {
+      reg_title <- gsub("\\b0(\\d)", "\\1", current_region)
+      
+      # Unique identifiers for HTML tabs
+      tab_id <- sprintf("tab-%s-%s", c_idx, r_idx)
+      
+      # Build Cards
+      cards <- lapply(seq_len(nrow(region_data)), function(i) {
+        row <- region_data[i, ]
+        img_url <- if (is.na(row$default_photo_medium_url) || row$default_photo_medium_url == "") {
+          "#"
+        } else {
+          sprintf("https://www.inaturalist.org/taxa/%1$s", row$id)
+        }
+        
+        tags$div(
+          class = "taxa-card",
+          tags$a(
+            href = img_url, target = "_blank",
+            tags$div(class = "taxa-img", style = sprintf("background-image: var(--img-sp-%s);", row$id))
+          ),
+          tags$div(
+            class = "taxa-info",
+            tags$span(class = "taxa-title", row$nom_commun_qc),
+            tags$span(class = "taxa-obs", sprintf("%s Obs.", format(row$n, big.mark = " ")))
+          )
+        )
+      })
+      
+      # Create Bootstrap Tab Header (LI)
+      tab_headers[[length(tab_headers) + 1]] <- tags$li(
+        class = if (is_first) "active" else NULL,
+        tags$a(
+          `data-toggle` = "tab",
+          href = paste0("#", tab_id),
+          reg_title
+        )
+      )
+      
+      # Create Bootstrap Tab Content Pane
+      tab_contents[[length(tab_contents) + 1]] <- tags$div(
+        id = tab_id,
+        class = sprintf("tab-pane fade %s", if (is_first) "in active" else ""),
+        tags$div(class = "taxa-grid", cards)
+      )
+      
+      is_first <- FALSE
+    }
+  }
+  
+  # Group tabs together inside the class section
+  if (length(tab_headers) > 0) {
+    tabs_container <- tags$div(
+      class = "tabbable",
+      tags$ul(class = "nav nav-tabs", tab_headers),
+      tags$div(class = "tab-content", tab_contents)
+    )
+    
+    accordion_list[[length(accordion_list) + 1]] <- tags$details(
+      class = "taxa-accordion",
+      tags$summary(class = "class-summary", current_class),
+      tags$div(class = "accordion-content", tabs_container)
+    )
+  }
+}
+
+# Safely print HTML without Pandoc errors
+knitr::raw_html(as.character(htmltools::tagList(accordion_list)))
+```
+
+
+
+## Détails méthodologiques et interprétation 
+
+```{=html}
+<details class="taxa-accordion" id="methodologie-guide" markdown="1">
+  <summary class="class-summary">Méthodologie du guide</summary>
+  <div class="accordion-content" style="text-align: left;" markdown="1">
+```
+
+
+**Données** 
+
+Le guide est construit avec les données de biodiversités provenant de 
+ @gbif_general et les photos puis les liens vers les espèces sont de 
+ @inaturalist_general. 
+
+Les noms français des espèces proviennent de diverses listes. 
+D'abord, la liste d'espèces pour le Canada de l'ensemble 
+de la biodiversité [@wild_species_canada_2020] couvre un spectre large de 
+taxons, mais plusieurs sont manquants. Au Québec, la liste de la faune 
+vertébrée du Québec et la liste des oiseaux du Québec couvrent une 
+bonne partie de la macrofaune
+[@lfvq_2021; @Liste_oiseaux_quebec].
+
+Pour les plantes non vasculaire et vasculaire, les listes Bryoquel et VASCAN 
+sont les références [@Bryoquel_liste; @vascan_gbif].
+
+Les champignons sont aussi couverts par les listes de Lichen Québec la 
+mycoliste [@lichen_quebec; @mycolytes_data].
+
+
+
+**Sélection des espèces**
+
+La sélection du nombre d'espèces est faite par groupe taxonomique (oiseaux,
+plantes, etc.) et le choix des espèces est réparti selon un niveau 
+taxonomique (niveau taxonomique; nombre maximal d'espèces du groupe) :
+oiseaux (famille; 140), plantes (ordre; 100), arthropodes (ordre; 100), 
+poissons (famille; 100) et champignons (famille; 100).
+
+
+**Interprétation**
+
+Le guide se présente les espèces qui sont le plus *observé* 
+au Québec par des citoyens, scientifiques, institutions gouvernementales, 
+des musées et autres publicateurs de données de biodiversité sur le 
+portail [GBIF](https://www.gbif.org/fr). 
+
+
+**Limites**
+
+Bien que les données de biodiversités sont rapportées de manière 
+[stadardisées](https://www.gbif.org/guides), la collecte de données se fait 
+de manière hétérogène.
+Autrement dit, il n'existe pas un protocole unifié pour collecter des données 
+de biodiversité : il y a 
+des expéditions scientifiques, 
+des observations informelles ou accessoires, 
+des collections muséales, etc. 
+L'approche de GBIF prend en charge un vaste étendue de données qui doit 
+être traitée avant de faire des analyses et d'établir des conclusions sur 
+les résultats.
+C'est donc une excellente opportunité de mesurer l'état de la biodiversité 
+au Québec, comme elle est rapportée par *toutes* les personnes qui 
+s'y intéressent et participe au partage de connaissances sur nos cousins 
+vivants. 
+
+L'une de ces opportunités est de parler plus de biodiversité 
+et de faire des projets citoyens qui reconnecte à la nature. Par exemple, 
+le nombre d'observations de certaines espèces ne représente pas leur réelle 
+abondance sur le territoire. 
+Une calibration est donc nécessaire. Des projets de
+science citoyenne pourraient aident à redresser les biais d'échantillonnages 
+en structurant la collecte de données selon des programmes coordonnés de cible
+à atteindre à l'échelle du Québec. 
+
+En regardant les résultats du nombre d'observations par région, on peut 
+voir l'importance de certains jeux de données. 
+En particulier, certaines espèces comme le 
+monarque (*Danaus Plexipus*) et l'asclépiade (*Asclepias syriaca*) ont un 
+intérêt pour les citoyens par des campagnes de sensibilisations (voir le projet
+[Mission monarque](https://www.mission-monarch.org/fr))
+et des et sont donc rapportés plus fréquemment. D'autres projets se 
+concentrent sur les insectes (voir les différents groupes d’entraide et 
+d’accompagnement en entomologie nommés 
+« [ Essaims ](https://insectesquebec.com/essaims) » dont 
+[Essaim des abeilles et aculéates (Cap sur les insectes)][projet-abeilles]).
+
+Ainsi, les projets qui ciblent certaines espèces peuvent avoir un nombre 
+d'observations qui sont plus grandes que des espèces plus communes, mais moins 
+rapportées, comme le moineau domestique (*Passer domesticus*) en ville. 
+
+Des expéditions scientifiques peuvent aussi rapporter beaucoup d'observations
+pour une espèce. C'est le cas de l'incroyable effort du Laboratoire 
+d'ornithologie marine de Rimouski (LOMR) et son programme de suivi 
+du fou de Bassan (*Morus bassanus*).
+
+[projet-abeilles]: https://www.inaturalist.org/projects/essaim-des-abeilles-et-aculeates-cap-sur-les-insectes
+
+```{=html}
+  </div>
+</details>
+```
+
+## Références
+
+
+```{=html}
+<details class="taxa-accordion" id="references-guide" markdown="1">
+  <summary class="class-summary">Bibliographie et sources</summary>
+  <div class="accordion-content" style="text-align: left;" markdown="1">
+```
+
+Ce projet a été créé dans le cadre d'analyse pédagogique de la biodiversité 
+(voir article de blogue 
+[Évologie](https://evologie.netlify.app/posts/guide_biodiv_qc/2025_05_24_guide_biodiv_qc/guide_biodiv_qc_1)).
+
+::: {#refs}
+:::
+
+
+```{=html}
+  </div>
+</details>
+```
+
+
+### Photo attributions
+
+
+<details class="taxa-accordion">
+  <summary class="class-summary">Crédits photographiques</summary>
+  <div class="accordion-content" style="font-size: 0.6em; line-height: 1.5; padding-top: 10px;">
+
+<!-- ::: {style="font-size: 0.6em;"} -->
+
+```{r photolic, echo=FALSE, results='asis'}
+sp_list_fil_all_taxo |> 
+  dplyr::distinct(default_photo_attribution_name) |> 
+  na.omit() |> 
+  dplyr::pull() |> 
+  gsub(pattern = ", some rights reserved|, uploaded by.*$|, all rights reserved|no rights reserved|CC |\n|\\*\\*", 
+       replacement = "") |> 
+  # gsub(pattern = "\\(c\\)", replacement = "\u00A9") |> 
+  gsub(pattern = "\\(c\\) ", replacement = "") |> 
+  gsub(pattern = "@", replacement = "_at_") |> 
+  sort() |> 
+  cat(sep = "; ")
+```
+
+  </div>
+</details>
+
+<!-- ::: -->
