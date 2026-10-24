@@ -84,7 +84,8 @@ count_sp <- gbif_prep_type_fr_h3 |>
   # Ajoute la colonne des noms d'espèces binomiaux
   mutate(
     sp2w = scientificName |>
-      str_remove_all("\\s*\\([^)]+\\)") |> # Remove parentheticals like (Danaus) or (Linnaeus, 1758)
+      # Remove parentheticals like (Danaus) or (Linnaeus, 1758)
+      str_remove_all("\\s*\\([^)]+\\)") |>
       word(1, 2)
   ) |>
   # Si nom_fr NA, mettre ''
@@ -98,6 +99,46 @@ count_sp <- gbif_prep_type_fr_h3 |>
   ) |>
   mutate(label = stringr::str_trim(label)) |>
   select(-nom_fr_clean)
+
+datasetkey_count <- gbif_prep_type_fr_h3 |>
+  dplyr::count(
+    datasetKey
+  ) |>
+  # Matérialiser les résultats
+  dplyr::collect() |>
+  dplyr::arrange(dplyr::desc(n))
+
+# exporter le compte d'observation des datasetKey
+write.csv(
+  x = datasetkey_count,
+  file = file.path(
+    "./output/biodiv/gbif_data/datasetkey_compte.csv"
+  ),
+  row.names = FALSE
+)
+
+# Charge les informations sur les datasets
+info_dataset_key <- read.csv(
+  file = file.path(
+    "./output/biodiv/gbif_data/datasetkey_info.csv"
+  )
+) |>
+  dplyr::select(-c(n, X))
+
+
+# Joindre les informations sur les datasets et le compte du nombre
+# d'observation
+dkc <- datasetkey_count |>
+  dplyr::left_join(
+    y = info_dataset_key,
+    by = dplyr::join_by(datasetKey)
+  ) |>
+  dplyr::mutate(
+    percent = (n / sum(n) * 100) |> round(digits = 2),
+    cum_pct = (cumsum(n) / sum(n) * 100) |> round(digits = 2)
+  ) |>
+  dplyr::relocate(percent, cum_pct, title, .after = n)
+
 
 ## Compte hiérarchique (passe d'espèce à famille)
 # du nombre d'espèces unique dans chaque famille
@@ -114,7 +155,7 @@ hierarchy_counts <- count_sp |>
 message("NB observation unique espèce par région \n--> count_sp_reg")
 # NOMBRE *D'OBSERVATION* POUR CHAQUE ESPÈCES PAR RÉGION
 count_sp_reg <- gbif_prep_type_fr_h3 |>
-  group_by(
+  dplyr::group_by(
     kingdom,
     phylum,
     class,
@@ -131,23 +172,25 @@ count_sp_reg <- gbif_prep_type_fr_h3 |>
     # RÉGION
     MUS_NM_REG
   ) |>
-  summarise(
-    n = sum(!is.na(speciesKey), na.rm = TRUE), # Les valeurs manquantes sont retirées en SQL
+  dplyr::summarise(
+    # Les valeurs manquantes sont retirées en SQL
+    n = sum(!is.na(speciesKey), na.rm = TRUE),
     .groups = "drop"
   ) |>
   # Correction de classe
-  mutate(
+  dplyr::mutate(
     pa = 1
   ) |>
   # Matérialiser les résultats
-  collect() |>
-  mutate(
+  dplyr::collect() |>
+  dplyr::mutate(
     sp2w = scientificName |>
-      str_remove_all("\\s*\\([^)]+\\)") |> # Remove parentheticals like (Danaus) or (Linnaeus, 1758)
-      word(1, 2)
+      # Remove parentheticals like (Danaus) or (Linnaeus, 1758)
+      stringr::str_remove_all("\\s*\\([^)]+\\)") |>
+      stringr::word(1, 2)
   ) |>
   # Si nom_fr NA, mettre ''
-  mutate(nom_fr_clean = coalesce(nom_fr, "")) |>
+  dplyr::mutate(nom_fr_clean = dplyr::coalesce(nom_fr, "")) |>
   tidyr::unite(
     "label",
     sp2w,
@@ -155,8 +198,8 @@ count_sp_reg <- gbif_prep_type_fr_h3 |>
     sep = "\n",
     remove = FALSE
   ) |>
-  mutate(label = stringr::str_trim(label)) |>
-  select(-nom_fr_clean)
+  dplyr::mutate(label = stringr::str_trim(label)) |>
+  dplyr::select(-nom_fr_clean)
 
 
 ### Sommaire des données GBIF selon parent H3 ------

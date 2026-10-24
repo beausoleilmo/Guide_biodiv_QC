@@ -167,7 +167,7 @@ dataset_details <- imap(uuids, function(id, i) {
     message(sprintf("Processing item %d of %d...", i, length(uuids)))
   }
 
-  res <- dataset_get(uuid = id)
+  res <- rgbif::dataset_get(uuid = id)
 
   tibble(
     title = collapse_field(res$title),

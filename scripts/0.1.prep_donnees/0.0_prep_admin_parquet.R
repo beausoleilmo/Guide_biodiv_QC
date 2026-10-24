@@ -19,22 +19,23 @@ suppressMessages(
 #   @source :
 #   https://www.donneesquebec.ca/recherche/dataset/decoupages-administratif
 message("transforme données région")
-
+decoup_admin <- "data/raw/SDA.gpkg"
+sf::st_layers(decoup_admin)
 # Lire données spatiales en sf
 muni <- sf::st_read(
   dsn = file.path(
-    "data/raw",
-    "decoupages_administratifs_1_20000_format_SHP/munic_s.shp"
+    decoup_admin
   ),
+  layer = "munic_s",
   quiet = TRUE
 )
 muni <- duckspatial::ddbs_open_dataset(
   path = file.path(
-    "data/raw",
-    "decoupages_administratifs_1_20000_format_SHP/munic_s.shp"
-  )
-)
+    decoup_admin
+  ),
 
+  layer = "munic_s",
+)
 # 15 s
 tictoc::tic("Union admin du Québec")
 muni_union <- duckspatial::ddbs_union(muni)
@@ -88,10 +89,9 @@ region_noms <- tibble::tribble(
   "16"        , "Montérégie"                    , "Montérégie"      ,
   "17"        , "Centre-du-Québec"              , "Centre-Qc"
 ) |>
-  mutate(
+  dplyr::mutate(
     code_reg_small = paste(MUS_CO_REG, MUS_NM_REG_short, sep = " ")
   )
-
 
 runion_raw <- muni |>
   duckspatial::ddbs_transform(y = "EPSG:32198") |>
@@ -99,9 +99,9 @@ runion_raw <- muni |>
   dplyr::mutate(
     code_reg = paste(MUS_CO_REG, MUS_NM_REG, sep = " ")
   ) |>
-  left_join(
+  dplyr::left_join(
     y = region_noms,
-    by = join_by(MUS_CO_REG, MUS_NM_REG),
+    by = dplyr::join_by(MUS_CO_REG, MUS_NM_REG),
     # La table tribble doit être de la même source que ddbs
     copy = "temp-table"
   )

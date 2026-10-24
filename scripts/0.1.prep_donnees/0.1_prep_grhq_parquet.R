@@ -8,7 +8,9 @@ library(purrr)
 
 # Lecture des données téléchargés de 0.0_prep_hydro_grhq.R
 gdb_fichiers <- list.files(
-  path = "/Volumes/g_magni/data/DonneeQuebec/hydro/donnees_qc_downloads",
+  path = file.path(
+  "/Volumes/g_magni/data/",
+  "DonneeQuebec/hydro/donnees_qc_downloads",
   pattern = ".gdb$",
   full.names = TRUE,
   include.dirs = TRUE,
@@ -85,23 +87,6 @@ gdb_files <- couches_fichiers |>
   pull(nom_fichier) |>
   unique()
 
-# Define target layer and schema template
-for (layer_name_i in c("RH_L", "RH_S")) {
-  message(layer_name_i)
-  tictoc::tic("Pipeline")
-  # Extract expected columns directly from header_rhl (ignoring geometry column name variation if needed)
-  if (layer_name_i == "RH_L") {
-    target_cols <- colnames(header_rhl)
-    tab_nom <- DBI::dbQuoteIdentifier(con, "combined_rhl")
-  }
-  if (layer_name_i == "RH_S") {
-    target_cols <- colnames(header_rhs)
-    tab_nom <- DBI::dbQuoteIdentifier(con, "combined_rhs")
-  }
-
-  # Exclude spatial 'Shape' or 'geom' column if handling purely attribute/GDAL spatial reads,
-  # or keep explicitly as SQL columns.
-  cols_sql <- paste(DBI::dbQuoteIdentifier(con, target_cols), collapse = ", ")
 
   # Construire la requête de l'UNION ALL
   build_select_query <- function(
@@ -126,12 +111,32 @@ for (layer_name_i in c("RH_L", "RH_S")) {
     )
   }
 
+
+
+# Define target layer and schema template
+for (layer_name_i in c("RH_L", "RH_S")) {
+  message(layer_name_i)
+  tictoc::tic("Pipeline")
+  # Extract expected columns directly from header_rhl (ignoring geometry column name variation if needed)
+  if (layer_name_i == "RH_L") {
+    target_cols <- colnames(header_rhl)
+    tab_nom <- DBI::dbQuoteIdentifier(con, "combined_rhl")
+  }
+  if (layer_name_i == "RH_S") {
+    target_cols <- colnames(header_rhs)
+    tab_nom <- DBI::dbQuoteIdentifier(con, "combined_rhs")
+  }
+
+  # Exclude spatial 'Shape' or 'geom' column if handling purely attribute/GDAL spatial reads,
+  # or keep explicitly as SQL columns.
+  cols_sql <- paste(DBI::dbQuoteIdentifier(con, target_cols), collapse = ", ")
+
   # Combine all file queries with UNION ALL
   union_query <- gdb_files |>
     map_chr(~ build_select_query(.x, layer_name_i, cols_sql)) |>
     paste(collapse = "\nUNION ALL\n")
 
-  # 4. Create a Lazy DuckDB Table or Materialize Result
+  # Create a Lazy DuckDB Table or Materialize Result
   # Option A: Create a lazy view inside DuckDB for fast out-of-core queries
   dbExecute(
     con,
@@ -196,8 +201,9 @@ bbox_qc <- sf::st_bbox(
   sf::st_as_sfc() |>
   sf::st_as_sf()
 
+
 dir.create(path = file.path(tempdir(), "duckdb/temp"), recursive = TRUE)
-aire_seuil <- 1e6
+aire_seuil <- 1e7
 # Simplification des données spatiales pour des calculs plus efficace
 # L'objectif est de faire des cartes pas pire. Pas des calculs super précis.
 hq_sel <- hq |>
@@ -205,8 +211,10 @@ hq_sel <- hq |>
   dplyr::filter(SHAPE_Area > aire_seuil) |>
   # Simplification des polygones. 120 est super simplifié
   duckspatial::ddbs_simplify(tolerance = 120) |>
-  duckspatial::ddbs_transform(y = paste0("EPSG:", projetCRS)) |>
-  duckspatial::ddbs_crop(y = bbox_qc)
+  duckspatial::ddbs_transform(y = paste0("EPSG:", projetCRS)) # |>
+# finalement, ne pas garder que le sud. Cela est pour la carte globale du 
+# Québec.
+  # duckspatial::ddbs_crop(y = bbox_qc)
 
 # Taille de notre table d'attributs
 # count(hq_sel)

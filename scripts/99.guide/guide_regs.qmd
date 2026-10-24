@@ -15,13 +15,14 @@ editor_options:
   chunk_output_type: console
 ---
 
-Le Guide de la Biodiversité par Région du Québec (GBRQ) doit son existance 
+Le Guide de la Biodiversité par Région du Québec (GBRQ) doit son existence 
 à l'effort de collecte de données rapportées par les citoyens, scientifiques, 
 musées et autres publicateurs de données sur 
 [GBIF](https://www.gbif.org/fr) -@gbif_general.  
 
 
-Cliquez sur la photo d'une espèce pour obtenir plus d'information sur inaturalist. 
+Cliquez sur la photo d'une espèce pour obtenir plus d'information 
+sur iNaturalist. 
 
 
 <!-- Retirer l'espace blanc  -->
@@ -231,7 +232,7 @@ knitr::raw_html('
 <details class="taxa-accordion" id="map-to-move">
   <summary class="class-summary">Carte du Québec</summary>
   <div class="accordion-content" style="text-align: center;">
-    <img src="../../img/carte_qc3.png" alt="Carte du Québec" style="max-width: 80%; height: auto; border-radius: 6px;" />
+    <img src="../../img/carte_qc3.png" alt="Carte du Québec" style="max-width: 100%; height: auto; border-radius: 6px;" />
   </div>
 </details>
 ')
@@ -480,41 +481,69 @@ knitr::raw_html(as.character(htmltools::tagList(accordion_list)))
 
 **Données** 
 
-Le guide est construit avec les données de biodiversités provenants de 
-GBIF @gbif_general et les photos puis les liens vers les espèces sont de 
-iNaturalist @inaturalist_general (photos et liens). 
+Le guide est construit avec les données de biodiversités provenant de 
+ @gbif_general et les photos puis les liens vers les espèces sont de 
+ @inaturalist_general. 
 
-Les noms français des espèces proviennent de diverse listes 
-[@wild_species_canada_2020; @Bryoquel_liste; @lfvq_2021; @lichen_quebec; @Liste_oiseaux_quebec; @mycolytes_data; @vascan_gbif].
+Les noms français des espèces proviennent de diverses listes. 
+D'abord, la liste d'espèces pour le Canada de l'ensemble 
+de la biodiversité [@wild_species_canada_2020] couvre un spectre large de 
+taxons, mais plusieurs sont manquants. Au Québec, la liste de la faune 
+vertébrée du Québec et la liste des oiseaux du Québec couvrent une 
+bonne partie de la macrofaune
+[@lfvq_2021; @Liste_oiseaux_quebec].
+
+Pour les plantes non vasculaire et vasculaire, les listes Bryoquel et VASCAN 
+sont les références [@Bryoquel_liste; @vascan_gbif].
+
+Les champignons sont aussi couverts par les listes de Lichen Québec la 
+mycoliste [@lichen_quebec; @mycolytes_data].
+
 
 
 **Sélection des espèces**
 
-La sélection des espèces est fait par groupe taxonomique (famille ou ordre). 
-Un nombre d'espèces maximal est déterminé pour chaque groupe d'organismes. 
-Pour chaque groupe d'organismes (niveau taxonomique; nombre maximal d'espèces),
-les espèces sont réparies selon un niveau taxonomique : 
+La sélection du nombre d'espèces est faite par groupe taxonomique (oiseaux,
+plantes, etc.) et le choix des espèces est réparti selon un niveau 
+taxonomique (niveau taxonomique; nombre maximal d'espèces du groupe) :
 oiseaux (famille; 140), plantes (ordre; 100), arthropodes (ordre; 100), 
 poissons (famille; 100) et champignons (famille; 100).
 
 
 **Interprétation**
 
-Le guide se présente comme une lentille des espèces qui sont le plus *observé* 
-au Québec selon citoyens, scientifiques, institutions gouvernementales, 
-musées, académiques et autres publicateurs de données de biodiversité sur le 
+Le guide se présente les espèces qui sont le plus *observé* 
+au Québec par des citoyens, scientifiques, institutions gouvernementales, 
+des musées et autres publicateurs de données de biodiversité sur le 
 portail [GBIF](https://www.gbif.org/fr). 
 
 
 **Limites**
 
-Les données de biodiversités sont rapportées de manière hétérogène : des 
-expéditions scientifiques, des observations informelles ou accessoires, des 
-collections muséales, etc. Cette diversité de collecte de biodiversité est 
-une opportunité de mesurer l'état de la biodiversité au Québec, comme elle 
-est rapportée par *toutes* les personnes qui s'y intéressent. Ces « biais », 
-peuvent être aussi vu comme une opportunité de parler plus de biodiversité 
-et de faire des projets citoyens qui reconnecte à la nature. 
+Bien que les données de biodiversités sont rapportées de manière 
+[stadardisées](https://www.gbif.org/guides), la collecte de données se fait 
+de manière hétérogène.
+Autrement dit, il n'existe pas un protocole unifié pour collecter des données 
+de biodiversité : il y a 
+des expéditions scientifiques, 
+des observations informelles ou accessoires, 
+des collections muséales, etc. 
+L'approche de GBIF prend en charge un vaste étendue de données qui doit 
+être traitée avant de faire des analyses et d'établir des conclusions sur 
+les résultats.
+C'est donc une excellente opportunité de mesurer l'état de la biodiversité 
+au Québec, comme elle est rapportée par *toutes* les personnes qui 
+s'y intéressent et participe au partage de connaissances sur nos cousins 
+vivants. 
+
+L'une de ces opportunités est de parler plus de biodiversité 
+et de faire des projets citoyens qui reconnecte à la nature. Par exemple, 
+le nombre d'observations de certaines espèces ne représente pas leur réelle 
+abondance sur le territoire. 
+Une calibration est donc nécessaire. Des projets de
+science citoyenne pourraient aident à redresser les biais d'échantillonnages 
+en structurant la collecte de données selon des programmes coordonnés de cible
+à atteindre à l'échelle du Québec. 
 
 En regardant les résultats du nombre d'observations par région, on peut 
 voir l'importance de certains jeux de données. 
@@ -523,17 +552,21 @@ monarque (*Danaus Plexipus*) et l'asclépiade (*Asclepias syriaca*) ont un
 intérêt pour les citoyens par des campagnes de sensibilisations (voir le projet
 [Mission monarque](https://www.mission-monarch.org/fr))
 et des et sont donc rapportés plus fréquemment. D'autres projets se 
-concentrent sur les insectes (voir les différents 
+concentrent sur les insectes (voir les différents groupes d’entraide et 
+d’accompagnement en entomologie nommés 
 « [ Essaims ](https://insectesquebec.com/essaims) » dont 
-[Essaim des abeilles et aculéates (Cap sur les insectes)](https://www.inaturalist.org/projects/essaim-des-abeilles-et-aculeates-cap-sur-les-insectes)).
-Ainsi, certaines espèces qui deviennent plus rares ont une attention 
-particulière et des espèces communes sont surreprésentées dans les groupes de 
-recherche d'espèces générales. 
+[Essaim des abeilles et aculéates (Cap sur les insectes)][projet-abeilles]).
+
+Ainsi, les projets qui ciblent certaines espèces peuvent avoir un nombre 
+d'observations qui sont plus grandes que des espèces plus communes, mais moins 
+rapportées, comme le moineau domestique (*Passer domesticus*) en ville. 
 
 Des expéditions scientifiques peuvent aussi rapporter beaucoup d'observations
 pour une espèce. C'est le cas de l'incroyable effort du Laboratoire 
 d'ornithologie marine de Rimouski (LOMR) et son programme de suivi 
 du fou de Bassan (*Morus bassanus*).
+
+[projet-abeilles]: https://www.inaturalist.org/projects/essaim-des-abeilles-et-aculeates-cap-sur-les-insectes
 
 ```{=html}
   </div>
