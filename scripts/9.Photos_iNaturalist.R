@@ -112,10 +112,12 @@ for (sp_dwln_idx in 1:nrow(data_in)) {
   }
   sp_tmp <- data_in[sp_dwln_idx, ]
 
+  # Extraire l'extension
   extension <- tools::file_ext(sp_tmp$default_photo_medium_url)
+  # Si c'est vide, trouve l'extension avec fonction.
   extension <- if_else(
     condition = extension == "",
-    true = detect_image_types_fast(sp_tmp$default_photo_medium_url),
+    true = evolovr::detect_image_types_fast(sp_tmp$default_photo_medium_url),
     false = extension
   )
 
@@ -225,7 +227,7 @@ sp_nm_list_fichier_photo <- sp_nm_list |>
     extension = if_else(
       condition = extension == "" & !is.na(default_photo_medium_url),
       # Super lent
-      true = detect_image_types_fast(default_photo_medium_url),
+      true = evolovr::detect_image_types_fast(default_photo_medium_url),
       false = extension
     ),
     out_down_file = file.path(

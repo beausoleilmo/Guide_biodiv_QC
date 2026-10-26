@@ -95,7 +95,7 @@ type_fr_path <- file.path(
   "corresp_table_class_orderType_FR.csv"
 )
 
-# Cherge données parquet et CSVs
+# Charge données parquet et CSVs
 # GBIF
 gb_tbl <- tbl(
   src = con,

@@ -48,7 +48,7 @@ head(df_species)
 
 # Helper function to extract and validate vernacular names
 extract_vernacular <- function(page, latin_name) {
-  nodes <- html_elements(
+  nodes <- rvest::html_elements(
     page,
     ".elementor-widget-shortcode .elementor-shortcode"
   )
@@ -57,13 +57,14 @@ extract_vernacular <- function(page, latin_name) {
   }
 
   # Strip inline style/script tags
-  xml_find_all(nodes, ".//style | .//script") |> xml_remove()
-  texts <- html_text2(nodes) |> str_trim()
+  xml2::xml_find_all(nodes, ".//style | .//script") |>
+    xml2::xml_remove()
+  texts <- rvest::html_text2(nodes) |> stringr::str_trim()
 
   # Filter out CSS blocks, empty text, and plugin placeholder text
   valid_texts <- texts[
     texts != "" &
-      !str_detect(
+      !stringr::str_detect(
         texts,
         "\\{|font-family|background-color|Exemple PHP avec CSS"
       )
@@ -76,7 +77,10 @@ extract_vernacular <- function(page, latin_name) {
   result <- valid_texts[1]
 
   # If the string simply repeats the scientific name, consider vernacular as missing (NA)
-  if (!is.na(latin_name) && str_detect(result, fixed(latin_name))) {
+  if (
+    !is.na(latin_name) &&
+      stringr::str_detect(result, stringr::fixed(latin_name))
+  ) {
     return(NA_character_)
   }
 
@@ -86,7 +90,7 @@ extract_vernacular <- function(page, latin_name) {
 scrape_species_detail <- function(url) {
   tryCatch(
     {
-      resp <- request(url) |>
+      resp <- httr2::request(url) |>
         req_user_agent(
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) R lichen-scraper"
         ) |>

@@ -21,6 +21,7 @@ if (FALSE) {
   # Préparation des données
   source("./scripts/99.pipeline/99.1_prep_aux_data.R")
 }
+
 # Charge les données auxiliaires (régions et eBird hotspots)
 source("./scripts/99.pipeline/99.2_charge_donnees.R")
 

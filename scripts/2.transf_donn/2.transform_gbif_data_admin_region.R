@@ -66,8 +66,7 @@ paths <- list(
 message(" --> .log des données GBIF originales")
 # Génère des fichiers de sommaire sur le nombre de rangées et
 # statistiques avec duckdb
-# evolovr::
-generate_gbif_log(
+evolovr::generate_gbif_log(
   con = NULL,
   path_in = paths$gbif_raw,
   path_log = paths$out_path_log,
@@ -93,12 +92,7 @@ message(" --> Prépare GBIF avec admin + h3 : GBIF_join_admin()")
 # NOTE : jointure (inner join) des données admin
 # NOTE : 1184 s : Filtration des données, jointure ('filtre' inner)
 # admin, exportation du fichier
-# ANCIENNEMENT : une grille entre admin et H3
-# Entre 620 et 920 sec, 10 min et 15 min (Sans précalcul de grille admin)
-# 180-300 sec (3-5 min) Avec précalcul de la grille H3 avec les régions
-# administratives (selon grille 10L)
-# evolovr::
-join_gbif_admin(
+evolovr::join_gbif_admin(
   con = NULL,
   config = paths,
   res = res_fine,
@@ -131,4 +125,31 @@ evolovr::generate_gbif_log(
   notes = "Fichier de données transformé
 (filtre basisOfRecord, occurrenceStatus, taxonRank, 
 coordinateUncertaintyMeters"
+)
+
+
+# Charge données parquet GBIF et compte nb occurrences pour les
+# datasetKey. Nécessaire pour les données GBIF dérivées et citer de
+# manière approprié les données du projet.
+datasetkey_count <- tbl(
+  src = evolovr::setup_duckdb(),
+  from = sprintf(
+    "read_parquet('%s')",
+    paths$out_gbif_pq
+  )
+) |>
+  dplyr::count(datasetKey) |>
+  # Matérialiser les résultats
+  dplyr::collect() |>
+  dplyr::arrange(dplyr::desc(n))
+
+# exporter le compte d'observation des datasetKey
+write.table(
+  x = datasetkey_count,
+  sep = ",",
+  file = file.path(
+    "./output/biodiv/gbif_data/datasetkey_compte_Derived_dataset.csv"
+  ),
+  col.names = FALSE,
+  row.names = FALSE
 )

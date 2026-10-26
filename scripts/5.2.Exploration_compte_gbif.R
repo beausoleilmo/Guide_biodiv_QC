@@ -100,6 +100,7 @@ count_sp <- gbif_prep_type_fr_h3 |>
   mutate(label = stringr::str_trim(label)) |>
   select(-nom_fr_clean)
 
+# Nécessite les noms de colones que 2.transform_gbif n'exporte pas...
 datasetkey_count <- gbif_prep_type_fr_h3 |>
   dplyr::count(
     datasetKey
@@ -108,14 +109,6 @@ datasetkey_count <- gbif_prep_type_fr_h3 |>
   dplyr::collect() |>
   dplyr::arrange(dplyr::desc(n))
 
-# exporter le compte d'observation des datasetKey
-write.csv(
-  x = datasetkey_count,
-  file = file.path(
-    "./output/biodiv/gbif_data/datasetkey_compte.csv"
-  ),
-  row.names = FALSE
-)
 
 # Charge les informations sur les datasets
 info_dataset_key <- read.csv(
