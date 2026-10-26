@@ -517,19 +517,36 @@ au Québec par des citoyens, scientifiques, institutions gouvernementales,
 des musées et autres publicateurs de données de biodiversité sur le 
 portail [GBIF](https://www.gbif.org/fr). 
 
+En regardant la distribution des espèces selon les régions, ce guide invite 
+l'utilisateur à se poser des questions sur le lien derrière la présence d'un 
+organisme dans un territoire donné. 
+
+Il permet de mesurer l'effet des programmes de science citoyenne pour rapporter 
+des informations sur les espèces d'un milieu. Par le fait même, on y note 
+des biais au niveau de ce qui est rapporté. En particulier, en regardant 
+le groupe des oiseaux pour Montréal, le moineau domestique 
+(*Passer domesticus*), l'étourneau sansonnet (*Sturnus vulgaris*) et le 
+pigeon biset (*Columba livia*) sont probablement des plus *vus* et *entendus* 
+tous les jours pour les gens qui vivent dans les parties les plus denses de 
+la ville. Mais ces oiseaux arrivent en 10e, 9e et 17e place respectivement.  
+
+Certains groupes d'organismes sont mieux représentés. Par exemple, les oiseaux
+sont majoritairement rapportés sur eBird par plusieurs milliers d'observations.
+Les espèces qui sont plus rares ou plus restreintes dans leurs habitats sont 
+beaucoup moins rapportées. 
 
 **Limites**
 
 Bien que les données de biodiversités sont rapportées de manière 
-[stadardisées](https://www.gbif.org/guides), la collecte de données se fait 
+[standardisées](https://www.gbif.org/guides), la collecte de données se fait 
 de manière hétérogène.
 Autrement dit, il n'existe pas un protocole unifié pour collecter des données 
 de biodiversité : il y a 
 des expéditions scientifiques, 
 des observations informelles ou accessoires, 
 des collections muséales, etc. 
-L'approche de GBIF prend en charge un vaste étendue de données qui doit 
-être traitée avant de faire des analyses et d'établir des conclusions sur 
+L'approche de GBIF prend en charge une vaste étendue de données qui doivent 
+être traitées avant de faire des analyses et d'établir des conclusions sur 
 les résultats.
 C'est donc une excellente opportunité de mesurer l'état de la biodiversité 
 au Québec, comme elle est rapportée par *toutes* les personnes qui 
