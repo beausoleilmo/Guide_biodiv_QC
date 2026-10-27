@@ -7,6 +7,10 @@ Guide de biodiversité du Québec
 
 ## Structure 
 
+- `./scripts/99.3.run_all.R` : exécute séquentiellement les scripts pour
+télécharger les données, les préparer, puis extraire les espèces à 
+inclure dans le guide. Téléchargement d'information sur iNaturalist pour
+lier les espèces avec le portail.
 - `./scripts/99.guide/control.R` : Génère le document `.html`
 - `./scripts/99.guide/guide_regs.qmd` : document principal et construit le guide en `.html`
 
