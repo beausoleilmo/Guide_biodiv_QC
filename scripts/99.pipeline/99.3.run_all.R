@@ -124,6 +124,7 @@ source(
 )
 
 # 9 pour télécharger les nouvelles photos
+# # NOTE : pour le moment, rouler manuellement
 # source(file.path("scripts/9.Photos_iNaturalist.R"))
 
 # utils/reduce_image_size.sh pour réduire la taille des images.

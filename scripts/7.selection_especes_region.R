@@ -29,23 +29,6 @@
 #   )
 
 message("Requiert internet pour API GBIF")
-count_sp_reg |>
-
-  count(kingdom, phylum)
-
-count_sp_reg |>
-  filter(
-    class %in%
-      c(
-        # "Insecta", "Arachnida", "Chilopoda", "Diplopoda", "Arthropoda, "Malacostraca", # order == Isopoda
-        # "Aves",
-        "Mammalia",
-        "Amphibia",
-        "Reptilia"
-      ),
-  ) |>
-  count(class)
-
 
 # Minimum d'observations
 # qui doivent être fait pour être inclue
@@ -55,7 +38,7 @@ min_obs <- 10
 # Extraire compte observations (avec minimum) pour
 # les organismes qui ne sont pas des oiseaux
 select_sp_noAves <- count_sp_reg |>
-  filter(
+  dplyr::filter(
     class %in%
       c(
         # "Insecta", "Arachnida", "Chilopoda", "Diplopoda", "Arthropoda, "Malacostraca", # order == Isopoda
@@ -69,13 +52,13 @@ select_sp_noAves <- count_sp_reg |>
   )
 
 select_sp_noAves |>
-  mutate(pa = 1) |>
-  group_by(
+  dplyr::mutate(pa = 1) |>
+  dplyr::group_by(
     MUS_NM_REG,
     class
   ) |>
-  summarise(sum = sum(pa)) |>
-  pivot_wider(names_from = class, values_from = sum)
+  dplyr::summarise(sum = sum(pa), .groups = "drop_last") |>
+  tidyr::pivot_wider(names_from = class, values_from = sum)
 
 # Arthropodes
 select_sp_arthrop <- count_sp_reg |>
@@ -163,7 +146,7 @@ select_sp_Aves <- especes_proportion_famille(
   # Sélectionne un nombre D'OBSERVATION minimale pour les oiseaux pour
   # être considérer dans le calcul
   donnees = count_sp_reg |> filter(class == "Aves", n > nb_min_obs),
-  nb_max_esp = 140,
+  nb_max_esp = 120,
   taxo_lvl = "family",
   type = "m1",
   region_lvl = region_lvl,
@@ -172,7 +155,7 @@ select_sp_Aves <- especes_proportion_famille(
 
 select_sp_plantes_filt <- especes_proportion_famille(
   donnees = select_sp_plantes,
-  nb_max_esp = 100,
+  nb_max_esp = 80,
   taxo_lvl = "order",
   type = "m1",
   region_lvl = region_lvl,
@@ -181,7 +164,7 @@ select_sp_plantes_filt <- especes_proportion_famille(
 
 select_sp_arthrop_filt <- especes_proportion_famille(
   donnees = select_sp_arthrop,
-  nb_max_esp = 100,
+  nb_max_esp = 70,
   taxo_lvl = "order",
   type = "m1",
   region_lvl = region_lvl,
@@ -189,14 +172,14 @@ select_sp_arthrop_filt <- especes_proportion_famille(
 )
 select_sp_pouessons_filt <- especes_proportion_famille(
   donnees = select_sp_pouessons,
-  nb_max_esp = 100,
+  nb_max_esp = 50,
   type = "m1",
   region_lvl = region_lvl,
   maxiter = 200
 )
 select_sp_fungi_filt <- especes_proportion_famille(
   donnees = select_sp_fungi,
-  nb_max_esp = 100,
+  nb_max_esp = 60,
   type = "m1",
   region_lvl = region_lvl,
   maxiter = 200
@@ -276,7 +259,7 @@ count_sp_reg |>
     kingdom,
     class
   ) |>
-  summarise(sum = sum(pa)) |>
+  summarise(sum = sum(pa), .groups = "drop_last") |>
   pivot_wider(
     names_from = c(kingdom, class),
     values_from = sum,
@@ -335,8 +318,8 @@ select_sp_tout_reg |>
     MUS_NM_REG,
     taxo_lvl_gr
   ) |>
-  summarise(sum = sum(pa)) |>
-  pivot_wider(
+  summarise(sum = sum(pa), .groups = "drop_last") |>
+  tidyr::pivot_wider(
     names_from = c(taxo_lvl_gr),
     values_from = sum,
     names_sort = TRUE
@@ -363,7 +346,7 @@ select_sp_tout_reg |>
     MUS_NM_REG,
     n
   ) |>
-  pivot_wider(
+  tidyr::pivot_wider(
     names_from = c(nom_fr),
     values_from = n,
     names_sort = TRUE

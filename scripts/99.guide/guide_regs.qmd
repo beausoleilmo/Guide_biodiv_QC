@@ -482,8 +482,9 @@ knitr::raw_html(as.character(htmltools::tagList(accordion_list)))
 **Données** 
 
 Le guide est construit avec les données de biodiversités provenant de 
- @gbif_general et les photos puis les liens vers les espèces sont de 
- @inaturalist_general. 
+ @gbif_OCC2026_10_15468, @borealis_data_2026_gbif, 
+ @jeu_donnees_derivee_gbif10_15468 et les photos puis 
+ les liens vers les espèces sont de @inaturalist_general. 
 
 Les noms français des espèces proviennent de diverses listes. 
 D'abord, la liste d'espèces pour le Canada de l'ensemble 
@@ -506,8 +507,11 @@ mycoliste [@lichen_quebec; @mycolytes_data].
 La sélection du nombre d'espèces est faite par groupe taxonomique (oiseaux,
 plantes, etc.) et le choix des espèces est réparti selon un niveau 
 taxonomique (niveau taxonomique; nombre maximal d'espèces du groupe) :
-oiseaux (famille; 140), plantes (ordre; 100), arthropodes (ordre; 100), 
-poissons (famille; 100) et champignons (famille; 100).
+oiseaux (famille; 120), 
+plantes (ordre; 80), 
+arthropodes (ordre; 70), 
+poissons (famille; 50) et 
+champignons (famille; 60).
 
 
 **Interprétation**
@@ -566,10 +570,16 @@ En regardant les résultats du nombre d'observations par région, on peut
 voir l'importance de certains jeux de données. 
 En particulier, certaines espèces comme le 
 monarque (*Danaus Plexipus*) et l'asclépiade (*Asclepias syriaca*) ont un 
-intérêt pour les citoyens par des campagnes de sensibilisations (voir le projet
-[Mission monarque](https://www.mission-monarch.org/fr))
-et des et sont donc rapportés plus fréquemment. D'autres projets se 
-concentrent sur les insectes (voir les différents groupes d’entraide et 
+intérêt pour les citoyens par des campagnes de sensibilisations 
+et des et sont donc rapportés plus fréquemment. 
+
+Informez-vous auprès de regroupements de naturalistes du Québec pour participer
+à l'effort de collecte de données de biodiversité. Restez à l'affût des 
+annonces de la 
+[Fédération canadienne de la faune](https://cwf-fcf.org/fr/explorer/inaturalist.html)
+pour participer aux bioblitz à l'échelle du pays! 
+D'autres projets se concentrent sur les insectes (voir les différents 
+groupes d’entraide et 
 d’accompagnement en entomologie nommés 
 « [ Essaims ](https://insectesquebec.com/essaims) » dont 
 [Essaim des abeilles et aculéates (Cap sur les insectes)][projet-abeilles]).
